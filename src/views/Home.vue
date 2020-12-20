@@ -7,5 +7,21 @@
         with Bootstrap 4.0.
       </p>
     </div>
-  </div></template
->
+  </div>
+</template>
+
+<script>
+//import RestrictedService from "../services/RestrictedService"
+
+export default {
+  props: [],
+  data() {
+    return {}
+  },
+  mounted() {
+    // runs when the element is injected into the browser
+  },
+  computed: {},
+  methods: {},
+}
+</script>

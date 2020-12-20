@@ -24,7 +24,7 @@
   </div>
 </template>
 
-<script lang="js">
+<script>
 import RestrictedService from "../services/RestrictedService"
 
 export default {

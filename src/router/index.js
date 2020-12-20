@@ -2,7 +2,8 @@ import Vue from "vue"
 import VueRouter from "vue-router"
 import Home from "../views/Home.vue"
 import RestrictedList from "../views/RestrictedList.vue"
-import BrandsList from "@/views/BrandsList.vue"
+import BrandsList from "../views/BrandsList.vue"
+import ItemMasterList from "../views/ItemMasterList.vue"
 
 Vue.use(VueRouter)
 
@@ -10,6 +11,11 @@ const routes = [
   {
     path: "/",
     name: "home",
+    component: Home,
+  },
+  {
+    path: "/home",
+    name: "home1",
     component: Home,
   },
   {
@@ -21,6 +27,11 @@ const routes = [
     path: "/brands-list",
     name: "brands-list",
     component: BrandsList,
+  },
+  {
+    path: "/item-master-list",
+    name: "item-master-list",
+    component: ItemMasterList,
   },
 ]
 

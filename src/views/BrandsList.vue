@@ -1,14 +1,30 @@
 <template>
   <div class="container">
-    <h3>Brand List</h3>
+    <h4>Brand List</h4>
+    <div class="row">
+      <div class="col-sm  align-self-end">
+        <BaseTotalRows
+          :showing="pagination.pageSize"
+          :totalRows="totalRows"
+          :noResultsMsg="noResultsMsg"
+        />
+      </div>
+      <div class="col-sm align-self-center">
+        <BaseSearchBar
+          :searchText="searchText"
+          v-on:search-attempt="onSearchAttempt"
+        />
+      </div>
+      <div class="col-sm align-self-center"></div>
+    </div>
+    <pulse-loader class="loading" :loading="data_loading"></pulse-loader>
+
     <table
       class="table table-hover table-sm table-sortable table-bordered table-striped"
     >
-      <!-- <caption>
-        List of Brands
-      </caption> -->
       <thead class="thead-light">
         <tr>
+          <th scope="col" />
           <th scope="col" @click="sort('brandName')">
             Brand Name
             <span
@@ -37,7 +53,16 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in data" :key="item.id">
+        <tr v-for="(item, index) in data" :key="item.id">
+          <!-- record sequence # -->
+          <td>
+            {{
+              pagination.pageSize * pagination.currentPage -
+                pagination.pageSize +
+                index +
+                1
+            }}
+          </td>
           <td>{{ item.brandName }}</td>
           <td>{{ item.abbreviation }}</td>
           <td>{{ item.vendorName }}</td>
@@ -45,63 +70,72 @@
         </tr>
       </tbody>
     </table>
-    <nav aria-label="...">
-      <ul class="pagination justify-content-end">
-        <li class="page-item disabled">
-          <a class="page-link" href="#" tabindex="-1">Previous</a>
-        </li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item active">
-          <a class="page-link" href="#"
-            >2 <span class="sr-only">(current)</span></a
-          >
-        </li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-          <a class="page-link" href="#">Next</a>
-        </li>
-      </ul>
-    </nav>
-    <!-- debug: sort={{ currentSort }}, dir={{ currentSortDir }} -->
+    <BasePagination
+      :pagination="pagination"
+      v-on:change-page-size="onChangePageSize"
+      v-on:change-page-number="onChangePageNumber"
+    />
   </div>
 </template>
 
 <script>
 import BrandService from "../services/BrandService"
+import PulseLoader from "vue-spinner/src/PulseLoader.vue"
 
 export default {
   props: [],
   data() {
     return {
-      data_fetched: false,
+      data_loading: false,
       data: [],
+      totalRows: 1,
+      noResultsMsg: "",
+      currentRows: 1,
+      pagination: {
+        pageSize: 25,
+        currentPage: 1,
+        maxPages: 2,
+        previousPage: 0,
+        nextPage: 2,
+      },
       currentSort: "brandName",
       currentSortDir: "asc",
-      pageSize: 25,
-      currentPage: 1,
       sortIndicator: "fa-sort-down",
+      searchText: "",
     }
   },
-  async created() {
-    try {
-      const response = await BrandService.getBrands()
-      this.data = response.data.results
-    } catch (error) {
-      console.log(`There was an error: ${error.response}`)
-    }
+  components: {
+    PulseLoader,
   },
-  mounted() {
+  async created() {},
+  async mounted() {
     // runs when the element is injected into the browser
+    this.getData()
   },
   computed: {},
   methods: {
+    onSearchAttempt: function(searchText) {
+      this.searchText = searchText
+      // if (searchText === "") this.getData()
+      this.getData()
+    },
+    onChangePageSize: function(newPageSize) {
+      if (newPageSize !== this.pagination.pageSize) {
+        console.log("onChangePageSize: ", this.searchText)
+        this.pagination.pageSize = newPageSize
+        this.getData()
+      }
+    },
+    onChangePageNumber: function(newPageNumber) {
+      if (newPageNumber !== this.pagination.currentPage) {
+        this.pagination.currentPage = newPageNumber
+        this.getData()
+      }
+    },
     getSortIndicator(field) {
       // Show indicator if current column is being sorted
       if (this.currentSort === field) {
         return this.sortIndicator
-        // if (this.currentSortDir === "asc") return "fa-sort-down"
-        // else if (this.currentSortDir === "desc") return "fa-sort-up"
-        // else return "fa-sort"
       } else {
         // not on this column: send nothing
         return ""
@@ -127,25 +161,39 @@ export default {
         this.sortIndicator = "fa-sort-down"
         this.currentSort = field
       }
+      await this.getData()
+    },
+    async getData() {
       try {
+        this.data_loading = true
         const response = await BrandService.getBrands(
-          this.pageSize,
+          this.pagination.pageSize,
+          this.pagination.currentPage,
           this.currentSort,
-          this.currentSortDir
+          this.currentSortDir,
+          this.searchText
         )
-        this.data = response.data.results
+
+        if (response.data.totalRows === undefined) {
+          // No results
+          this.noResultsMsg = "No matches"
+          this.data = []
+          this.totalRows = 0
+          this.pagination.maxPages = 0
+        } else {
+          // Results
+          this.noResultsMsg = ""
+          this.data = response.data.results
+          this.totalRows = response.data.totalRows
+          this.pagination.maxPages = response.data.maxPages
+          // this.pagination.previousPage = response.data.previousPage
+          // this.pagination.nextPage = response.data.nextPage
+        }
+        this.data_loading = false
       } catch (error) {
         console.log(`There was an error: ${error.response}`)
       }
     },
-
-    // sort: function(s) {
-    //   //if s == current sort, reverse
-    //   if (s === this.currentSort) {
-    //     this.currentSortDir = this.currentSortDir === "asc" ? "desc" : "asc"
-    //   }
-    //   this.currentSort = s
-    // },
   },
 }
 </script>
@@ -163,41 +211,15 @@ export default {
 .table-hover tbody tr:hover th {
   background-color: rgb(224, 224, 224);
 }
-/*.table-sortable > thead > tr > th:after,
-.table-sortable > thead > tr > th:after,
-.table-sortable > thead > tr > th:after {
-  content: " ";
+.loading {
   position: absolute;
-  height: 0;
-  width: 0;
-  right: 10px;
-  top: 16px;
+  /* background: antiquewhite; */
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  height: fit-content;
+  width: fit-content;
 }
-.table-sortable > thead > tr > th:after {
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid #ccc;
-  border-bottom: 0px solid transparent;
-}
-
-.table-sortable > thead > tr > th:hover:after {
-  border-top: 5px solid #888;
-}
-
-.table-sortable > thead > tr > th.asc:after {
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 0px solid transparent;
-  border-bottom: 5px solid #333;
-}
-.table-sortable > thead > tr > th.asc:hover:after {
-  border-bottom: 5px solid #888;
-}
-
-.table-sortable > thead > tr > th.desc:after {
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid #333;
-  border-bottom: 5px solid transparent;
-} */
 </style>
