@@ -1,6 +1,9 @@
 <template>
   <div>
     <label v-if="noResultsMsg !== ''">{{ noResultsMsg }}</label>
+    <label v-else-if="useShowing >= totalRows"
+      >Showing all <strong>{{ totalRows }}</strong> rows</label
+    >
     <label v-else
       >Showing <strong>{{ useShowing }}</strong> of
       <strong>{{ this.totalRows }}</strong> total rows</label

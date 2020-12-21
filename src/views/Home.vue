@@ -1,5 +1,5 @@
 <template>
-  <div class="jumbotron jumbotron-fluid">
+  <div class="jumbotron jumbotron-fluid mt-5">
     <div class="container">
       <h1 class="display-4">g3tools Sandbox</h1>
       <p class="lead">

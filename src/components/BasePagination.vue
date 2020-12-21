@@ -7,16 +7,15 @@
         name="rowsPerPage"
         class="d-inline-block custom-select mr-3 "
         style="width: auto;"
-        v-on:click="changePageSize"
+        v-on:change="changePageSize"
       >
         <option>10</option>
         <option>25</option>
         <option>50</option>
-        <option>100</option>
-        <option>200</option>
+        <option>100000</option>
       </select>
     </div>
-    <nav aria-label="Table pagination">
+    <nav aria-label="Table pagination" v-show="pagination.maxPages > 1">
       <ul class="pagination justify-content-end">
         <!-- First page button -->
         <li

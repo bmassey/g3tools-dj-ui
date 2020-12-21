@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" style="margin-top: 60px">
     <h4>Brand List</h4>
     <div class="row">
       <div class="col-sm  align-self-end">
@@ -20,7 +20,7 @@
     <pulse-loader class="loading" :loading="data_loading"></pulse-loader>
 
     <table
-      class="table table-hover table-sm table-sortable table-bordered table-striped"
+      class="table table-hover table-sm table-sortable table-bordered table-striped fixed_header"
     >
       <thead class="thead-light">
         <tr>
@@ -52,10 +52,10 @@
           </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="my-tbody container">
         <tr v-for="(item, index) in data" :key="item.id">
           <!-- record sequence # -->
-          <td>
+          <td style="width: 10%" class="text-right">
             {{
               pagination.pageSize * pagination.currentPage -
                 pagination.pageSize +
@@ -63,10 +63,18 @@
                 1
             }}
           </td>
-          <td>{{ item.brandName }}</td>
+          <!-- Brand name -->
+          <td>
+            <a class="col-link" href="#">{{ item.brandName }}</a>
+          </td>
+          <!-- Abbreviation -->
           <td>{{ item.abbreviation }}</td>
+          <!-- Vendor name -->
           <td>{{ item.vendorName }}</td>
-          <td>{{ item.active }}</td>
+          <!-- Active -->
+          <td>
+            <i class="col-cb" :class="{ 'fa fa-check': item.active }" />
+          </td>
         </tr>
       </tbody>
     </table>
@@ -92,7 +100,7 @@ export default {
       noResultsMsg: "",
       currentRows: 1,
       pagination: {
-        pageSize: 25,
+        pageSize: 3000,
         currentPage: 1,
         maxPages: 2,
         previousPage: 0,
@@ -209,7 +217,7 @@ export default {
 }
 .table-hover tbody tr:hover td,
 .table-hover tbody tr:hover th {
-  background-color: rgb(224, 224, 224);
+  background-color: rgba(206, 216, 235, 0.438);
 }
 .loading {
   position: absolute;
@@ -222,4 +230,56 @@ export default {
   height: fit-content;
   width: fit-content;
 }
+.col-cb {
+  display: flex;
+  justify-content: center;
+  margin-top: 3px;
+  color: grey;
+}
+.col-link {
+  text-decoration: none;
+}
+
+.fixed_header > .container {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.fixed_header {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.fixed_header tbody {
+  display: block;
+  width: 100%;
+  overflow: auto;
+  height: 79vh;
+}
+
+.fixed_header thead tr {
+  display: block;
+}
+
+.fixed_header thead {
+  background: black;
+  color: #fff;
+}
+
+.fixed_header th,
+.fixed_header td {
+  padding: 5px;
+  text-align: left;
+  width: 900px;
+}
+
+/* table {
+  width: auto;
+}
+td {
+  white-space: nowrap;
+}
+table td:last-child {
+  width: 100%;
+} */
 </style>

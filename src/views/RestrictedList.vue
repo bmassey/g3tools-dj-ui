@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" style="margin-top: 60px">
     <h3>Restricted List</h3>
     <table class="table table-hover table-sm">
       <thead class="thead-light">

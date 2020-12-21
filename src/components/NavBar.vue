@@ -1,6 +1,6 @@
 <template>
   <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light ">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top ">
       <a class="navbar-brand" href="#">g3tools</a>
       <button
         class="navbar-toggler"
