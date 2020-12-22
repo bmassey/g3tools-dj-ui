@@ -1,22 +1,28 @@
 <template>
-  <div>
-    <div class="input-group mb-1 searchbox">
-      <input
-        type="text"
-        v-model="localSearchText"
-        class="form-control"
-        placeholder="Search..."
-        v-on:keyup.enter="search"
-      />
-      <!-- Search button -->
-      <div class="input-group-append">
-        <button class="btn btn-primary search-accept" v-on:click="search">
-          <i class="fa fa-search"></i>
-        </button>
-      </div>
-      <!-- Clear search button -->
-      <button class="btn bg-transparent search-cancel" @click="clear">
-        <i class="fa fa-times color-secondary"></i>
+  <div class="input-group searchbox">
+    <input
+      type="text"
+      v-model="localSearchText"
+      class="form-control"
+      placeholder="Search..."
+      v-on:keyup.enter="search"
+    />
+    <!-- Clear search button -->
+    <button
+      class="btn bg-transparent search-cancel"
+      @click="clear"
+      :class="{ disabled: localSearchText === '' }"
+    >
+      <i class="fa fa-times color-secondary"></i>
+    </button>
+    <!-- Search button -->
+    <div class="input-group-append">
+      <button
+        class="btn btn-secondary search-accept"
+        v-on:click="search"
+        :class="{ disabled: localSearchText === '' }"
+      >
+        <i class="fa fa-search"></i>
       </button>
     </div>
   </div>
@@ -32,9 +38,11 @@ export default {
   },
   methods: {
     search() {
+      if (this.localSearchText === "") return
       this.$emit("search-attempt", this.localSearchText)
     },
     clear() {
+      if (this.localSearchText === "") return
       this.localSearchText = ""
       this.$emit("search-attempt", "")
     },
@@ -53,14 +61,13 @@ export default {
 
 <style lang="css" scoped>
 .searchbox {
-  width: 300px;
+  width: 250px;
 }
 .search-cancel {
   margin-left: -80px;
   z-index: 100;
 }
 .search-accept {
-  margin-left: -40px;
   z-index: 100;
 }
 .fa-times {

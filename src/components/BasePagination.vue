@@ -12,7 +12,9 @@
         <option>10</option>
         <option>25</option>
         <option>50</option>
-        <option>100000</option>
+        <option>100</option>
+        <option>200</option>
+        <option>5000</option>
       </select>
     </div>
     <nav aria-label="Table pagination" v-show="pagination.maxPages > 1">
@@ -108,7 +110,7 @@ export default {
   },
   data() {
     return {
-      pageSize: 25,
+      pageSize: this.pagination.pageSize,
     }
   },
   components: {},
@@ -146,6 +148,7 @@ export default {
   },
   methods: {
     changePageSize() {
+      if (this.pageSize === "All") this.pageSize = -1
       this.$emit("change-page-size", parseInt(this.pageSize))
     },
     changePageNumber(page) {

@@ -27,11 +27,13 @@ export default {
     currentPage = 1,
     orderBy = "brandName",
     orderDir = "asc",
-    searchText = ""
+    searchText = "",
+    filter = ""
   ) {
     let query = `?limit=${pageSize}&page=${currentPage}&orderBy=${orderBy}&orderDir=${orderDir}`
     if (searchText !== "") query = `${query}&searchText=${searchText}`
-    const url = searchText !== "" ? "/brands/find" : "/brands"
+    if (filter != "") query = `${query}&filter=${filter}`
+    const url = searchText !== "" || filter !== "" ? "/brands/find" : "/brands"
     return apiClient.get(`${url}${query}`)
   },
   // findBrands(searchText) {

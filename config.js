@@ -1,3 +1,3 @@
 module.exports = {
-  maxTablePages: 7,
+  maxTablePages: 5,
 }

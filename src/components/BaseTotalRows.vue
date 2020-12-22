@@ -6,7 +6,7 @@
     >
     <label v-else
       >Showing <strong>{{ useShowing }}</strong> of
-      <strong>{{ this.totalRows }}</strong> total rows</label
+      <strong>{{ this.totalRows }}</strong> rows</label
     >
   </div>
 </template>
