@@ -60,7 +60,7 @@
         <li
           class="page-item"
           :class="{
-            disabled: pagination.currentPage === pagination.maxPages,
+            disabled: pagination.currentPage === pagination.maxPages
           }"
         >
           <a
@@ -99,7 +99,7 @@ import config from "../../config.js"
 
 export default {
   props: {
-    pagination: Object,
+    pagination: Object
     // pagination: {
     //   pageSize: 25,
     //   currentPage: 1,
@@ -110,7 +110,7 @@ export default {
   },
   data() {
     return {
-      pageSize: this.pagination.pageSize,
+      pageSize: this.pagination.pageSize
     }
   },
   components: {},
@@ -144,7 +144,7 @@ export default {
         )
       }
       return newArray
-    },
+    }
   },
   methods: {
     changePageSize() {
@@ -153,8 +153,8 @@ export default {
     },
     changePageNumber(page) {
       this.$emit("change-page-number", parseInt(page))
-    },
-  },
+    }
+  }
 }
 </script>
 

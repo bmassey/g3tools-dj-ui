@@ -1,10 +1,10 @@
 <template>
   <div class="container" style="margin-top: 60px">
-    <BaseTitle :title="title" :subTitle="subTitle" />
-    <div class="mx-3 ">
-      <div class="row border table-action-bar">
+    <BaseTitle :title="title" :sub-title="subTitle" />
+    <div class="border table-action-bar">
+      <div class="d-flex">
         <BaseSearchBar
-          :searchText="searchText"
+          :search-text="searchText"
           @search-attempt="onSearchAttempt"
         />
         <!-- Active base filter -->
@@ -13,6 +13,12 @@
           @change-option="changeActiveOption"
         />
       </div>
+      <!-- Action menu to the right -->
+      <BaseTableAction
+        :selected-count="selectedItems.length"
+        @action-refresh="getData()"
+        @action-add="showAdd = true"
+      />
     </div>
     <pulse-loader class="loading" :loading="data_loading"></pulse-loader>
 
@@ -22,23 +28,29 @@
     >
       <thead class="thead-light text-center">
         <tr>
-          <th scope="col" style="width: 5%" />
-          <th scope="col" style="width: 5%" />
-          <th scope="col" @click="sort('brandName')" style="width: 30%">
+          <th colspan="2" scope="col">
+            <BaseHeadingSelect
+              :selected="selectedItems.length > 0"
+              @heading-select-changed="headingSelectChanged"
+              @heading-action="headingAction"
+            />
+          </th>
+          <!-- <th scope="col" style="width: 5%" /> -->
+          <th scope="col" style="width: 30%" @click="sort('brandName')">
             Brand Name
             <span
               class="fa fa-fw"
               :class="getSortIndicator('brandName')"
             ></span>
           </th>
-          <th scope="col" @click="sort('abbreviation')" style="width: 10%">
+          <th scope="col" style="width: 10%" @click="sort('abbreviation')">
             Abbrev
             <span
               class="fa fa-fw"
               :class="getSortIndicator('abbreviation')"
             ></span>
           </th>
-          <th scope="col" @click="sort('vendorName')" style="width: 30%">
+          <th scope="col" style="width: 30%" @click="sort('vendorName')">
             Vendor Name
             <span
               class="fa fa-fw"
@@ -52,9 +64,15 @@
         </tr>
       </thead>
       <tbody class="my-tbody">
+        <!-- Table data rows -->
         <tr v-for="(item, index) in data" :key="item.id">
           <!-- Row select -->
-          <td><i class="fa fa-check row-select" /></td>
+          <td class="p-0 flex-fill" @click="rowSelected(item.id)">
+            <i
+              class="fa fa-check row-select"
+              :class="[isRowChecked(item.id) ? 'row-checked' : 'row-unchecked']"
+            />
+          </td>
           <!-- record sequence # -->
           <td class="text-right" sytle="white-space: nowrap; width: 4%">
             {{ getSequenceNum(index) }}
@@ -69,7 +87,9 @@
             {{ item.abbreviation }}
           </td>
           <!-- Vendor name -->
-          <td style="white-space: nowrap; width: 30%">{{ item.vendorName }}</td>
+          <td style="white-space: nowrap; width: 30%">
+            {{ item.vendorName }}
+          </td>
           <!-- Active -->
           <td style="width: 20%">
             <i class="col-cb" :class="{ 'fa fa-check': item.active }" />
@@ -77,36 +97,60 @@
         </tr>
       </tbody>
     </table>
-    <div class="row">
-      <div class="col-sm-3 align-self-start">
+    <div class="d-flex justify-content-between">
+      <div class="">
         <BaseTotalRows
           :showing="pagination.pageSize"
-          :totalRows="totalRows"
-          :noResultsMsg="noResultsMsg"
+          :total-rows="totalRows"
+          :selected="selectedItems.length"
+          :no-results-msg="noResultsMsg"
         />
       </div>
-      <div class="col-sm-9 align-self-start">
+      <div class="">
         <BasePagination
           :pagination="pagination"
-          @change-page-size="onChangePageSize"
-          @change-page-number="onChangePageNumber"
+          on-change-page-number-change-page-size="
+          on-change-page-size-
+          @change-page-number="
         />
       </div>
     </div>
+    <div>
+      <BrandAdd :show="true" />
+      <!-- <b-modal id="add-modal" title="Add Brand">
+        <p class="my-4">Test brand modal</p>
+      </b-modal> -->
+    </div>
+
+    <!-- <BrandAdd :show="showAdd" @add-closed="showAdd = false" /> -->
   </div>
 </template>
 
 <script>
-import BrandService from "../services/BrandService"
-import PulseLoader from "vue-spinner/src/PulseLoader.vue"
-import _ from "lodash"
+import BrandService from "../services/BrandService";
+import PulseLoader from "vue-spinner/src/PulseLoader.vue";
+import BrandAdd from "@/views/BrandAdd.vue";
+import _ from "lodash";
+import utils from "../utils/jsUtils.js";
+import Vue from "vue";
+import VueToast from "vue-toast-notification";
+// Import one of the available themes
+import "vue-toast-notification/dist/theme-default.css";
+import "vue-toast-notification/dist/theme-sugar.css";
+
+Vue.use(VueToast);
 
 export default {
+  components: {
+    PulseLoader,
+    BrandAdd,
+  },
   props: [],
   data() {
     return {
       data_loading: false,
       data: [],
+      selectedItems: [],
       totalRows: 1,
       noResultsMsg: "",
       currentRows: 1,
@@ -142,105 +186,146 @@ export default {
       title: "Brand List",
       subTitle:
         "Use this to maintain brands that are bought or sold. Assign a unique prefix, used in item numbers.",
-    }
+      showAdd: false,
+    };
   },
-  components: {
-    PulseLoader,
-  },
+  computed: {},
   async created() {},
   async mounted() {
     // runs when the element is injected into the browser
-    this.getData()
+    this.getData();
   },
-  computed: {},
   methods: {
-    getSequenceNum: function(index) {
+    rowSelected: function (id) {
+      utils.arrToggle(this.selectedItems, id);
+    },
+    isRowChecked: function (id) {
+      // Is this id in the selectedItems array?
+      return this.selectedItems.indexOf(id) !== -1;
+    },
+    headingSelectChanged: function (checked) {
+      // If checked, select all rows
+      this.selectedItems = checked ? _.map(this.data, "id") : [];
+    },
+    headingAction: async function (action) {
+      let i = 0;
+      switch (action) {
+        case "select-all":
+          this.headingSelectChanged(true);
+          break;
+        case "un-select-all":
+          this.headingSelectChanged(false);
+          break;
+        default:
+          try {
+            // Cycle through selected items
+            const promises = this.selectedItems.map(async (itemId) => {
+              const foundItem = _.find(this.data, { id: itemId });
+              foundItem.active = action === "change-active" ? true : false;
+              // Save record to db
+              this.data_loading = true;
+              await BrandService.saveBrand(foundItem);
+              this.data_loading = false;
+              i++;
+              console.log("i", i);
+              return;
+            });
+            const success = await Promise.all(promises);
+            // Success
+            console.log("success:", success);
+            const msg = `Successfully changed ${
+              i >= 200 ? "maximum of 200" : i
+            } records`;
+            Vue.$toast.open({
+              message: msg,
+              type: "success",
+              duration: 5000,
+            });
+          } catch (err) {
+            console.error(`Error saving record: ${err}`);
+            Vue.$toast.open({
+              message: `Error saving record: ${err}`,
+              type: "error",
+              duration: 5000,
+            });
+          }
+          break;
+      }
+    },
+    getSequenceNum: function (index) {
       if (this.pagination.pageSize === "All") {
-        return index + 1
+        return index + 1;
       } else {
         return (
           this.pagination.pageSize * this.pagination.currentPage -
           this.pagination.pageSize +
           index +
           1
-        )
+        );
       }
     },
 
-    onSearchAttempt: function(searchText) {
-      this.searchText = searchText
+    onSearchAttempt: function (searchText) {
+      this.searchText = searchText;
       // Server-side filtering
-      this.getData()
+      this.getData();
     },
-    onChangePageSize: function(newPageSize) {
+    onChangePageSize: function (newPageSize) {
       if (newPageSize !== this.pagination.pageSize) {
-        this.pagination.pageSize = newPageSize
-        this.getData()
+        this.pagination.pageSize = newPageSize;
+        this.getData();
       }
     },
-    onChangePageNumber: function(newPageNumber) {
+    onChangePageNumber: function (newPageNumber) {
       if (newPageNumber !== this.pagination.currentPage) {
-        this.pagination.currentPage = newPageNumber
-        this.getData()
+        this.pagination.currentPage = newPageNumber;
+        this.getData();
       }
     },
-    changeActiveOption: function(activeOption) {
-      this.filter = ""
-      if (activeOption === "active") this.filter = "active=true"
-      else if (activeOption === "inactive") this.filter = "active=false"
-      // 12/21/20: No client-side filtering possible, since we don't have
-      // the entire dataset to filter on
-      // // Client or server-side sorting?
-      // if (this.pagination.maxPages === 1) {
-      //   // All records are retrieved: Client sort
-      //   this.data = _.filter(this.data, "active", activeOption === "active")
-      // } else {
-      // Server-side sorting
-      this.getData()
+    changeActiveOption: function (activeOption) {
+      this.filter = "";
+      if (activeOption === "active") this.filter = "active=true";
+      else if (activeOption === "inactive") this.filter = "active=false";
+      this.getData();
       // }
     },
     getSortIndicator(field) {
       // Show indicator if current column is being sorted
       if (this.currentSort === field) {
-        return this.sortIndicator
+        return this.sortIndicator;
       } else {
         // not on this column: send nothing
-        return ""
+        return "";
       }
     },
     sort(field) {
-      // 3-way sort: asc, desc, and no sort
       // 2-way sort only: asc, desc
       if (field !== this.currentSort) {
-        this.currentSort = field
+        this.currentSort = field;
         // Reset sort direction
-        this.currentSortDir = "asc"
-        this.sortIndicator = "fa-sort-up"
+        this.currentSortDir = "asc";
+        this.sortIndicator = "fa-sort-up";
       } else if (this.currentSortDir === "asc") {
-        this.currentSortDir = "desc"
-        this.sortIndicator = "fa-sort-down"
-        this.currentSort = field
-        // } else if (this.currentSortDir === "desc") {
-        //   this.currentSortDir = ""
-        //   this.sortIndicator = "fa-sort"
-        //   this.currentSort = ""
+        this.currentSortDir = "desc";
+        this.sortIndicator = "fa-sort-down";
+        this.currentSort = field;
       } else if (this.currentSortDir === "desc") {
-        this.currentSortDir = "asc"
-        this.sortIndicator = "fa-sort-up"
-        this.currentSort = field
+        this.currentSortDir = "asc";
+        this.sortIndicator = "fa-sort-up";
+        this.currentSort = field;
       }
       // Client or server-side sorting?
       if (this.pagination.maxPages === 1) {
         // All records are retrieved: Client sort
-        this.data = _.orderBy(this.data, this.currentSort, this.currentSortDir)
+        this.data = _.orderBy(this.data, this.currentSort, this.currentSortDir);
       } else {
         // Server-side sorting
-        this.getData()
+        this.getData();
       }
     },
     async getData() {
       try {
-        this.data_loading = true
+        this.data_loading = true;
         const response = await BrandService.getBrands(
           this.pagination.pageSize,
           this.pagination.currentPage,
@@ -248,30 +333,30 @@ export default {
           this.currentSortDir,
           this.searchText,
           this.filter
-        )
+        );
 
         if (response.data.totalRows === undefined) {
           // No results
-          this.noResultsMsg = "No matches"
-          this.data = []
-          this.totalRows = 0
-          this.pagination.maxPages = 0
+          this.noResultsMsg = "No matches";
+          this.data = [];
+          this.totalRows = 0;
+          this.pagination.maxPages = 0;
         } else {
           // Results
-          this.noResultsMsg = ""
-          this.data = response.data.results
-          this.totalRows = response.data.totalRows
-          this.pagination.maxPages = response.data.maxPages
+          this.noResultsMsg = "";
+          this.data = response.data.results;
+          this.totalRows = response.data.totalRows;
+          this.pagination.maxPages = response.data.maxPages;
           // this.pagination.previousPage = response.data.previousPage
           // this.pagination.nextPage = response.data.nextPage
         }
-        this.data_loading = false
+        this.data_loading = false;
       } catch (error) {
-        console.log(`There was an error: ${error.response}`)
+        console.log(`There was an error: ${error.response}`);
       }
     },
   },
-}
+};
 </script>
 
 <style scoped>
@@ -285,17 +370,16 @@ export default {
 }
 .table-hover tbody tr:hover td,
 .table-hover tbody tr:hover th {
-  background-color: rgba(206, 216, 235, 0.438);
+  background-color: rgba(216, 221, 230, 0.438);
 }
 .table-bordered {
   /* border-left: 0px; */
   border-top: 0px;
 }
 .table-action-bar {
+  display: flex;
+  justify-content: space-between;
   background-color: RGB(248, 248, 248);
-  margin-left: -16px;
-  margin-right: -16px;
-  display: "flex";
   padding: 10px;
   border: 1px;
 }
@@ -313,7 +397,7 @@ export default {
   display: block;
   width: 100%;
   overflow: auto;
-  height: 79vh;
+  height: 78vh;
 }
 
 .fixed_header thead tr {
@@ -350,17 +434,19 @@ export default {
 .row-select {
   display: flex;
   justify-content: center;
-  margin-top: 3px;
+  height: 34px;
+  padding: 5px;
+  padding-top: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.row-select:hover {
+  transform: scale(1.4, 1.4);
+}
+.row-checked {
+  color: #007bff;
+}
+.row-unchecked {
   color: rgb(200, 200, 200);
 }
-
-/* table {
-  width: auto;
-}
-td {
-  white-space: nowrap;
-}
-table td:last-child {
-  width: 100%;
-} */
 </style>

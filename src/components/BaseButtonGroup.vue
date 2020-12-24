@@ -27,17 +27,17 @@
 <script>
 export default {
   props: {
-    buttons: Array,
+    buttons: Array
   },
   data() {
     return {
-      valueOption: "active",
+      valueOption: "active"
     }
   },
   computed: {
     buttonsLocal() {
       return this.buttons
-    },
+    }
   },
   methods: {
     buttonClass: function(isActive) {
@@ -46,8 +46,8 @@ export default {
     checkChanged() {
       console.log("checkChanged: ", this.valueOption)
       this.$emit("change-option", this.valueOption)
-    },
-  },
+    }
+  }
 }
 </script>
 

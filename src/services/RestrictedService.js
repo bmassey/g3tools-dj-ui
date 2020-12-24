@@ -5,8 +5,8 @@ const apiClient = axios.create({
   withCredentials: false,
   headers: {
     Accept: "application/json",
-    "Content-type": "application/json",
-  },
+    "Content-type": "application/json"
+  }
 })
 
 export default {
@@ -15,5 +15,5 @@ export default {
   },
   gettem(id) {
     return apiClient.get(`/restricted/${id}`)
-  },
+  }
 }

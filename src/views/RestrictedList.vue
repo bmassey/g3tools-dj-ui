@@ -32,7 +32,7 @@ export default {
   data() {
     return {
       data_fetched: false,
-      data: [],
+      data: []
     }
   },
   async created() {
@@ -48,6 +48,6 @@ export default {
     // runs when the element is injected into the browser
   },
   computed: {},
-  methods: {},
+  methods: {}
 }
 </script>

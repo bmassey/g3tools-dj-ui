@@ -1,28 +1,28 @@
 <template>
   <div class="input-group searchbox">
     <input
-      type="text"
       v-model="localSearchText"
+      type="text"
       class="form-control"
       placeholder="Search..."
-      v-on:keyup.enter="search"
+      @keyup.enter="search"
     />
     <!-- Clear search button -->
     <button
       class="btn bg-transparent search-cancel"
-      @click="clear"
       :class="{ disabled: localSearchText === '' }"
+      @click="clear"
     >
-      <i class="fa fa-times color-secondary"></i>
+      <i class="fas fa-times color-secondary"></i>
     </button>
     <!-- Search button -->
     <div class="input-group-append">
       <button
         class="btn btn-secondary search-accept"
-        v-on:click="search"
         :class="{ disabled: localSearchText === '' }"
+        @click="search"
       >
-        <i class="fa fa-search"></i>
+        <i class="fas fa-search"></i>
       </button>
     </div>
   </div>
@@ -30,22 +30,16 @@
 
 <script>
 export default {
-  props: { searchText: String },
+  props: {
+    searchText: {
+      type: String,
+      default: "",
+    },
+  },
   data() {
     return {
       localSearchText: this.searchText,
-    }
-  },
-  methods: {
-    search() {
-      if (this.localSearchText === "") return
-      this.$emit("search-attempt", this.localSearchText)
-    },
-    clear() {
-      if (this.localSearchText === "") return
-      this.localSearchText = ""
-      this.$emit("search-attempt", "")
-    },
+    };
   },
   watch: {
     // searchText: {
@@ -56,7 +50,18 @@ export default {
     //   deep: true,
     // },
   },
-}
+  methods: {
+    search() {
+      if (this.localSearchText === "") return;
+      this.$emit("search-attempt", this.localSearchText);
+    },
+    clear() {
+      if (this.localSearchText === "") return;
+      this.localSearchText = "";
+      this.$emit("search-attempt", "");
+    },
+  },
+};
 </script>
 
 <style lang="css" scoped>

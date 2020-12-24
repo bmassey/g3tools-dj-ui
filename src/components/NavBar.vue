@@ -41,8 +41,8 @@
 export default {
   name: "NavBar",
   props: {
-    msg: String,
-  },
+    msg: String
+  }
 }
 </script>
 

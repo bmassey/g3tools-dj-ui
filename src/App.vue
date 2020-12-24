@@ -2,7 +2,7 @@
   <div id="app">
     <div id="nav">
       <NavBar />
-        <!-- <Home />
+      <!-- <Home />
         <RestictedList />
         <BrandsList />
       </NavBar> -->
@@ -12,7 +12,8 @@
 </template>
 
 <script>
-import NavBar from '@/components/NavBar.vue'
+//import NavBar from "@/components/NavBar.vue";
+import NavBar from "@/components/NavBar.vue";
 // import ListTest from '@/components/ListTest.vue'
 // import RestrictedList from './views/RestrictedList.vue'
 // import BrandsList from '@/components/BrandsList.vue';
@@ -25,4 +26,4 @@ export default {
     // BrandsList,
     // Home
   },
-}
+};

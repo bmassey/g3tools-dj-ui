@@ -1,12 +1,12 @@
-import axios from "axios"
+import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: 'http://localhost:3000',
   withCredentials: false,
   headers: {
-    Accept: "application/json",
-    "Content-type": "application/json",
-  },
+    Accept: 'application/json',
+    'Content-type': 'application/json'
+  }
 })
 
 // before a request is made start the nprogress
@@ -22,24 +22,32 @@ apiClient.interceptors.response.use((response) => {
 })
 
 export default {
+  // Retrieve records optionally using search text or filter
   getBrands(
     pageSize = 25,
     currentPage = 1,
-    orderBy = "brandName",
-    orderDir = "asc",
-    searchText = "",
-    filter = ""
+    orderBy = 'brandName',
+    orderDir = 'asc',
+    searchText = '',
+    filter = ''
   ) {
     let query = `?limit=${pageSize}&page=${currentPage}&orderBy=${orderBy}&orderDir=${orderDir}`
-    if (searchText !== "") query = `${query}&searchText=${searchText}`
-    if (filter != "") query = `${query}&filter=${filter}`
-    const url = searchText !== "" || filter !== "" ? "/brands/find" : "/brands"
+    if (searchText !== '') query = `${query}&searchText=${searchText}`
+    if (filter != '') query = `${query}&filter=${filter}`
+    const url = searchText !== '' || filter !== '' ? '/brands/find' : '/brands'
     return apiClient.get(`${url}${query}`)
   },
-  // findBrands(searchText) {
-  //   return apiClient.get(`/brands/find?searchText=${searchText}`)
-  // },
+  // Get single record
   getBrand(id) {
     return apiClient.get(`/brands/${id}`)
   },
+
+  // Save a single record
+  async saveBrand(payload) {
+    try {
+      await apiClient.put(`/brands/${payload.id}`, payload)
+    } catch (err) {
+      console.error(`Error saving record: ${err}`)
+    }
+  }
 }
