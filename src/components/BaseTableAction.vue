@@ -43,15 +43,20 @@ i {
   color: rgb(73, 73, 73);
   padding: 0px;
   margin: 0px;
+  transition: 0.2s;
 }
+i:hover {
+  transform: scale(1.2, 1.2);
+}
+
 .btn {
   background-color: transparent;
   border: none;
   margin-right: 2px;
   padding-top: 5px;
   padding-bottom: 5px;
-  padding-left: 7px;
-  padding-right: 7px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 .add-icon {
   font-size: 1.6em;

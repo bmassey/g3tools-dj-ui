@@ -1,58 +1,40 @@
 <template>
   <div class="action-container">
     <!-- Heading checkbox -->
-    <div class="p-0 action-check" @click="checkClicked">
+    <div class="action-check" @click="checkClicked">
       <i
-        class="fa fa-check action-checkbox pl-0"
+        class="fa fa-check action-checkbox"
         :class="[selected ? 'row-checked' : 'row-unchecked']"
       />
     </div>
     <!-- Dropdown action button -->
-    <div class="dropdown pl-1 action-dropdown">
-      <button
-        id="topAction"
-        class="btn btn-transparent dropdown-toggle fa fas fa-angle-down"
-        type="button"
-        data-toggle="dropdown"
-        aria-haspopup="true"
-        aria-expanded="false"
-      ></button>
-      <div class="dropdown-menu" aria-labelledby="topAction">
-        <button
-          class="dropdown-item"
-          type="button"
-          :disabled="selected"
-          @click="actionClicked('select-all')"
-        >
-          Select All
-        </button>
-        <button
-          class="dropdown-item"
-          type="button"
-          :disabled="!selected"
-          @click="actionClicked('un-select-all')"
-        >
-          Unselect All
-        </button>
-        <div class="dropdown-divider" type="button"></div>
-        <button
-          class="dropdown-item"
-          type="button"
-          :disabled="!selected"
-          @click="actionClicked('change-active')"
-        >
-          Change Selected to Active
-        </button>
-        <button
-          class="dropdown-item"
-          type="button"
-          :disabled="!selected"
-          @click="actionClicked('change-inactive')"
-        >
-          Change Selected to Inactive
-        </button>
-      </div>
-    </div>
+    <b-dropdown id="topAction" no-caret>
+      <template #button-content>
+        <b-icon icon="caret-down" variant="secondary" />
+      </template>
+      <b-dd-item-btn :disabled="selected" @click="actionClicked('select-all')">
+        Select All
+      </b-dd-item-btn>
+      <b-dd-item-btn
+        :disabled="!selected"
+        @click="actionClicked('un-select-all')"
+      >
+        Unselect All
+      </b-dd-item-btn>
+      <b-dd-divider></b-dd-divider>
+      <b-dd-item-btn
+        :disabled="!selected"
+        @click="actionClicked('change-active')"
+      >
+        Change Selected to Active
+      </b-dd-item-btn>
+      <b-dd-item-btn
+        :disabled="!selected"
+        @click="actionClicked('change-inactive')"
+      >
+        Change Selected to Inactive
+      </b-dd-item-btn>
+    </b-dropdown>
   </div>
 </template>
 
@@ -94,12 +76,12 @@ export default {
 }
 .action-checkbox {
   height: 34px;
-  padding: 5px;
   padding-top: 8px;
+  padding-right: 10px;
   cursor: pointer;
   transition: 0.2s;
 }
-.row-select:hover {
+.action-checkbox:hover {
   transform: scale(1.3, 1.3);
 }
 .row-checked {
@@ -112,12 +94,23 @@ export default {
   width: 34px;
   margin-left: 5px;
 }
-.action-dropdown {
-  padding: 0px;
-  margin-left: -15px;
+::v-deep > button {
+  background-color: transparent;
+  border: none;
+  padding-right: 5px;
+  padding-left: 5px;
+  padding-bottom: 0px;
+  margin-bottom: 5px;
   margin-right: 20px;
+  margin-left: -10px;
 }
-.dropdown-toggle::after {
-  display: none;
+::v-deep > button:hover {
+  background-color: rgb(199, 199, 199);
+}
+::v-deep > b-dropdown:active {
+  background-color: transparent;
+}
+::v-deep > .btn-secondary.dropdown-toggle:active {
+  background-color: grey;
 }
 </style>

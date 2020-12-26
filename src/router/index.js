@@ -1,44 +1,51 @@
-import Vue from "vue"
-import VueRouter from "vue-router"
-import Home from "../views/Home.vue"
-import RestrictedList from "../views/RestrictedList.vue"
-import BrandsList from "../views/BrandsList.vue"
-import ItemMasterList from "../views/ItemMasterList.vue"
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import Home from '../views/Home.vue'
+import RestrictedList from '../views/RestrictedList.vue'
+import BrandList from '../views/BrandList.vue'
+import BrandItem from '@/views/BrandItem.vue'
+import ItemMasterList from '../views/ItemMasterList.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
   {
-    path: "/",
-    name: "home",
+    path: '/',
+    name: 'home',
     component: Home
   },
   {
-    path: "/home",
-    name: "home1",
+    path: '/home',
+    name: 'home1',
     component: Home
   },
   {
-    path: "/restricted-list",
-    name: "restricted-list",
+    path: '/restricted-list',
+    name: 'restricted-list',
     component: RestrictedList
   },
   {
-    path: "/brands-list",
-    name: "brands-list",
-    component: BrandsList
+    path: '/brand-list',
+    name: 'brand-list',
+    component: BrandList
   },
   {
-    path: "/item-master-list",
-    name: "item-master-list",
+    path: '/brand-item/',
+    name: 'brand-item',
+    component: BrandItem,
+    props: true
+  },
+  {
+    path: '/item-master-list',
+    name: 'item-master-list',
     component: ItemMasterList
   }
 ]
 
 const router = new VueRouter({
-  mode: "history",
   base: process.env.BASE_URL,
-  routes
+  routes,
+  mode: 'history'
 })
 
 export default router

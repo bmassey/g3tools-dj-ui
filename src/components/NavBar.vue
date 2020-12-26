@@ -1,6 +1,6 @@
 <template>
   <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top ">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
       <a class="navbar-brand" href="#">g3tools</a>
       <button
         class="navbar-toggler"
@@ -13,7 +13,7 @@
       >
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
+      <div id="navbarNav" class="collapse navbar-collapse">
         <ul class="navbar-nav">
           <li class="nav-item active">
             <router-link to="/" class="nav-link">Home</router-link>
@@ -24,7 +24,12 @@
             >
           </li>
           <li class="nav-item">
-            <router-link to="/brands-list" class="nav-link">Brands</router-link>
+            <router-link to="/brand-list" class="nav-link">Brands</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/brand-item" class="nav-link"
+              >Brand Item</router-link
+            >
           </li>
           <li class="nav-item">
             <router-link to="/item-master-list" class="nav-link"
@@ -41,9 +46,9 @@
 export default {
   name: "NavBar",
   props: {
-    msg: String
-  }
-}
+    msg: String,
+  },
+};
 </script>
 
 <style scoped></style>

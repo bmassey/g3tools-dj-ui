@@ -16,8 +16,8 @@
       <!-- Action menu to the right -->
       <BaseTableAction
         :selected-count="selectedItems.length"
-        @action-refresh="getData()"
-        @action-add="showAdd = true"
+        @action-refresh="getData"
+        @action-add="addBrand"
       />
     </div>
     <pulse-loader class="loading" :loading="data_loading"></pulse-loader>
@@ -28,7 +28,7 @@
     >
       <thead class="thead-light text-center">
         <tr>
-          <th colspan="2" scope="col">
+          <th colspan="2" scope="col" style="width: 10%">
             <BaseHeadingSelect
               :selected="selectedItems.length > 0"
               @heading-select-changed="headingSelectChanged"
@@ -36,7 +36,7 @@
             />
           </th>
           <!-- <th scope="col" style="width: 5%" /> -->
-          <th scope="col" style="width: 30%" @click="sort('brandName')">
+          <th scope="col" style="width: 24.5%" @click="sort('brandName')">
             Brand Name
             <span
               class="fa fa-fw"
@@ -50,16 +50,23 @@
               :class="getSortIndicator('abbreviation')"
             ></span>
           </th>
-          <th scope="col" style="width: 30%" @click="sort('vendorName')">
+          <th scope="col" style="width: 24.5%" @click="sort('vendorName')">
             Vendor Name
             <span
               class="fa fa-fw"
               :class="getSortIndicator('vendorName')"
             ></span>
           </th>
-          <th scope="col" @click="sort('active')">
+          <th scope="col" style="width: 10%" @click="sort('active')">
             Active
             <span class="fa fa-fw" :class="getSortIndicator('active')"></span>
+          </th>
+          <th scope="col" @click="sort('modifiedOn')">
+            Last Modified
+            <span
+              class="fa fa-fw"
+              :class="getSortIndicator('modifiedOn')"
+            ></span>
           </th>
         </tr>
       </thead>
@@ -74,12 +81,12 @@
             />
           </td>
           <!-- record sequence # -->
-          <td class="text-right" sytle="white-space: nowrap; width: 4%">
+          <td class="text-right" sytle="white-space: nowrap; width: 7%">
             {{ getSequenceNum(index) }}
             <!-- {{ index }} -->
           </td>
           <!-- Brand name -->
-          <td style="white-space: nowrap; width: 30%">
+          <td style="white-space: nowrap; width: 25%" @click="openBrand(item)">
             <a class="col-link" href="#">{{ item.brandName }}</a>
           </td>
           <!-- Abbreviation -->
@@ -87,12 +94,16 @@
             {{ item.abbreviation }}
           </td>
           <!-- Vendor name -->
-          <td style="white-space: nowrap; width: 30%">
+          <td style="white-space: nowrap; width: 25%">
             {{ item.vendorName }}
           </td>
           <!-- Active -->
-          <td style="width: 20%">
+          <td style="width: 10%">
             <i class="col-cb" :class="{ 'fa fa-check': item.active }" />
+          </td>
+          <!-- Modified On -->
+          <td style="white-space: nowrap; width: 20%">
+            {{ formatDate(item.modifiedOn) }}
           </td>
         </tr>
       </tbody>
@@ -115,12 +126,12 @@
         />
       </div>
     </div>
-    <div>
-      <BrandAdd :show="true" />
-      <!-- <b-modal id="add-modal" title="Add Brand">
+    <!-- <div> -->
+    <!-- <BrandAdd :show="true" /> -->
+    <!-- <b-modal id="add-modal" title="Add Brand">
         <p class="my-4">Test brand modal</p>
       </b-modal> -->
-    </div>
+    <!-- </div> -->
 
     <!-- <BrandAdd :show="showAdd" @add-closed="showAdd = false" /> -->
   </div>
@@ -129,7 +140,7 @@
 <script>
 import BrandService from "../services/BrandService";
 import PulseLoader from "vue-spinner/src/PulseLoader.vue";
-import BrandAdd from "@/views/BrandAdd.vue";
+// import BrandAdd from "@/views/BrandAdd.vue";
 import _ from "lodash";
 import utils from "../utils/jsUtils.js";
 import Vue from "vue";
@@ -137,13 +148,14 @@ import VueToast from "vue-toast-notification";
 // Import one of the available themes
 import "vue-toast-notification/dist/theme-default.css";
 import "vue-toast-notification/dist/theme-sugar.css";
+import date from "date-and-time";
 
 Vue.use(VueToast);
 
 export default {
   components: {
     PulseLoader,
-    BrandAdd,
+    // BrandAdd,
   },
   props: [],
   data() {
@@ -196,6 +208,10 @@ export default {
     this.getData();
   },
   methods: {
+    formatDate: function (rawDate) {
+      return date.format(new Date(rawDate), "MM/DD/YYYY h:mm A");
+    },
+
     rowSelected: function (id) {
       utils.arrToggle(this.selectedItems, id);
     },
@@ -218,6 +234,7 @@ export default {
           break;
         default:
           try {
+            // Change records to active / inactive
             // Cycle through selected items
             const promises = this.selectedItems.map(async (itemId) => {
               const foundItem = _.find(this.data, { id: itemId });
@@ -288,6 +305,22 @@ export default {
       else if (activeOption === "inactive") this.filter = "active=false";
       this.getData();
       // }
+    },
+    addBrand: function () {
+      this.$router.push({
+        name: "brand-item",
+        params: {
+          item: "new",
+        },
+      });
+    },
+    openBrand: function (item) {
+      this.$router.push({
+        name: "brand-item",
+        params: {
+          item: item,
+        },
+      });
     },
     getSortIndicator(field) {
       // Show indicator if current column is being sorted
@@ -407,7 +440,7 @@ export default {
 .fixed_header th,
 .fixed_header td {
   padding: 5px;
-  width: 800px;
+  width: 900px;
   border-width: 1px;
 }
 
