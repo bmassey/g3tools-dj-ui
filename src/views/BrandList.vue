@@ -1,146 +1,153 @@
 <template>
   <div class="container" style="margin-top: 60px">
-    <BaseTitle :title="title" :sub-title="subTitle" />
-    <div class="border table-action-bar">
-      <div class="d-flex">
-        <BaseSearchBar
-          :search-text="searchText"
-          @search-attempt="onSearchAttempt"
-        />
-        <!-- Active base filter -->
-        <BaseButtonGroup
-          :buttons="activeFilterButtons"
-          @change-option="changeActiveOption"
+    <div v-show="!showItem">
+      <BaseTitle :title="title" :sub-title="subTitle" />
+      <div class="border table-action-bar">
+        <div class="d-flex">
+          <BaseSearchBar
+            :search-text="searchText"
+            @search-attempt="onSearchAttempt"
+          />
+          <!-- Active base filter -->
+          <BaseButtonGroup
+            :buttons="activeFilterButtons"
+            @change-option="changeActiveOption"
+          />
+        </div>
+        <!-- Action menu to the right -->
+        <BaseTableAction
+          :selected-count="selectedItems.length"
+          @action-refresh="getData"
+          @action-add="showItemDetail('new')"
+          @action-delete="deleteRows"
         />
       </div>
-      <!-- Action menu to the right -->
-      <BaseTableAction
-        :selected-count="selectedItems.length"
-        @action-refresh="getData"
-        @action-add="addBrand"
-      />
-    </div>
-    <pulse-loader class="loading" :loading="data_loading"></pulse-loader>
+      <pulse-loader class="loading" :loading="data_loading"></pulse-loader>
 
-    <table
-      class="table table-hover table-sm table-sortable table-bordered table-striped fixed_header"
-      style="width: 100%"
-    >
-      <thead class="thead-light text-center">
-        <tr>
-          <th colspan="2" scope="col" style="width: 10%">
-            <BaseHeadingSelect
-              :selected="selectedItems.length > 0"
-              @heading-select-changed="headingSelectChanged"
-              @heading-action="headingAction"
-            />
-          </th>
-          <!-- <th scope="col" style="width: 5%" /> -->
-          <th scope="col" style="width: 24.5%" @click="sort('brandName')">
-            Brand Name
-            <span
-              class="fa fa-fw"
-              :class="getSortIndicator('brandName')"
-            ></span>
-          </th>
-          <th scope="col" style="width: 10%" @click="sort('abbreviation')">
-            Abbrev
-            <span
-              class="fa fa-fw"
-              :class="getSortIndicator('abbreviation')"
-            ></span>
-          </th>
-          <th scope="col" style="width: 24.5%" @click="sort('vendorName')">
-            Vendor Name
-            <span
-              class="fa fa-fw"
-              :class="getSortIndicator('vendorName')"
-            ></span>
-          </th>
-          <th scope="col" style="width: 10%" @click="sort('active')">
-            Active
-            <span class="fa fa-fw" :class="getSortIndicator('active')"></span>
-          </th>
-          <th scope="col" @click="sort('modifiedOn')">
-            Last Modified
-            <span
-              class="fa fa-fw"
-              :class="getSortIndicator('modifiedOn')"
-            ></span>
-          </th>
-        </tr>
-      </thead>
-      <tbody class="my-tbody">
-        <!-- Table data rows -->
-        <tr v-for="(item, index) in data" :key="item.id">
-          <!-- Row select -->
-          <td class="p-0 flex-fill" @click="rowSelected(item.id)">
-            <i
-              class="fa fa-check row-select"
-              :class="[isRowChecked(item.id) ? 'row-checked' : 'row-unchecked']"
-            />
-          </td>
-          <!-- record sequence # -->
-          <td class="text-right" sytle="white-space: nowrap; width: 7%">
-            {{ getSequenceNum(index) }}
-            <!-- {{ index }} -->
-          </td>
-          <!-- Brand name -->
-          <td style="white-space: nowrap; width: 25%" @click="openBrand(item)">
-            <a class="col-link" href="#">{{ item.brandName }}</a>
-          </td>
-          <!-- Abbreviation -->
-          <td style="white-space: nowrap; width: 10%">
-            {{ item.abbreviation }}
-          </td>
-          <!-- Vendor name -->
-          <td style="white-space: nowrap; width: 25%">
-            {{ item.vendorName }}
-          </td>
-          <!-- Active -->
-          <td style="width: 10%">
-            <i class="col-cb" :class="{ 'fa fa-check': item.active }" />
-          </td>
-          <!-- Modified On -->
-          <td style="white-space: nowrap; width: 20%">
-            {{ formatDate(item.modifiedOn) }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="d-flex justify-content-between">
-      <div class="">
-        <BaseTotalRows
-          :showing="pagination.pageSize"
-          :total-rows="totalRows"
-          :selected="selectedItems.length"
-          :no-results-msg="noResultsMsg"
-        />
-      </div>
-      <div class="">
-        <BasePagination
-          :pagination="pagination"
-          on-change-page-number-change-page-size="
+      <table
+        class="table table-hover table-sm table-sortable table-bordered table-striped fixed_header"
+        style="width: 100%"
+      >
+        <thead class="thead-light text-center">
+          <tr>
+            <th colspan="2" scope="col" style="width: 10%">
+              <BaseHeadingSelect
+                :selected="selectedItems.length > 0"
+                @heading-select-changed="headingSelectChanged"
+                @heading-action="headingAction"
+              />
+            </th>
+            <!-- <th scope="col" style="width: 5%" /> -->
+            <th scope="col" style="width: 24.5%" @click="sort('brandName')">
+              Brand Name
+              <span
+                class="fa fa-fw"
+                :class="getSortIndicator('brandName')"
+              ></span>
+            </th>
+            <th scope="col" style="width: 10%" @click="sort('abbreviation')">
+              Abbrev
+              <span
+                class="fa fa-fw"
+                :class="getSortIndicator('abbreviation')"
+              ></span>
+            </th>
+            <th scope="col" style="width: 24.5%" @click="sort('vendorName')">
+              Vendor Name
+              <span
+                class="fa fa-fw"
+                :class="getSortIndicator('vendorName')"
+              ></span>
+            </th>
+            <th scope="col" style="width: 10%" @click="sort('active')">
+              Active
+              <span class="fa fa-fw" :class="getSortIndicator('active')"></span>
+            </th>
+            <th scope="col" @click="sort('modifiedOn')">
+              Last Modified
+              <span
+                class="fa fa-fw"
+                :class="getSortIndicator('modifiedOn')"
+              ></span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="my-tbody">
+          <!-- Table data rows -->
+          <tr v-for="(item, index) in data" :key="item.id">
+            <!-- Row select -->
+            <td class="p-0 flex-fill" @click="rowSelected(item.id)">
+              <i
+                class="fa fa-check row-select"
+                :class="[
+                  isRowChecked(item.id) ? 'row-checked' : 'row-unchecked',
+                ]"
+              />
+            </td>
+            <!-- record sequence # -->
+            <td class="text-right" sytle="white-space: nowrap; width: 7%">
+              {{ getSequenceNum(index) }}
+              <!-- {{ index }} -->
+            </td>
+            <!-- Brand name -->
+            <td
+              style="white-space: nowrap; width: 25%"
+              @click="showItemDetail(item)"
+            >
+              <a class="col-link" href="#">{{ item.brandName }}</a>
+            </td>
+            <!-- Abbreviation -->
+            <td style="white-space: nowrap; width: 10%">
+              {{ item.abbreviation }}
+            </td>
+            <!-- Vendor name -->
+            <td style="white-space: nowrap; width: 25%">
+              {{ item.vendorName }}
+            </td>
+            <!-- Active -->
+            <td style="width: 10%">
+              <i class="col-cb" :class="{ 'fa fa-check': item.active }" />
+            </td>
+            <!-- Modified On -->
+            <td style="white-space: nowrap; width: 20%">
+              {{ formatDate(item.modifiedOn) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="d-flex justify-content-between">
+        <div class="">
+          <BaseTotalRows
+            :showing="pagination.pageSize"
+            :total-rows="totalRows"
+            :selected="selectedItems.length"
+            :no-results-msg="noResultsMsg"
+          />
+        </div>
+        <div class="">
+          <BasePagination
+            :pagination="pagination"
+            on-change-page-number-change-page-size="
           on-change-page-size-
           @change-page-number="
-        />
+          />
+        </div>
       </div>
     </div>
-    <!-- <div> -->
-    <!-- <BrandAdd :show="true" /> -->
-    <!-- <b-modal id="add-modal" title="Add Brand">
-        <p class="my-4">Test brand modal</p>
-      </b-modal> -->
-    <!-- </div> -->
-
-    <!-- <BrandAdd :show="showAdd" @add-closed="showAdd = false" /> -->
+    <!-- Add/update item -->
+    <BrandItem
+      v-show="showItem"
+      :item="selectedItem"
+      :status="itemDetailStatus"
+      @item-closed="closeItemDetail"
+    />
   </div>
 </template>
 
 <script>
 import BrandService from "../services/BrandService";
 import PulseLoader from "vue-spinner/src/PulseLoader.vue";
-// import BrandAdd from "@/views/BrandAdd.vue";
+import BrandItem from "@/views/BrandItem.vue";
 import _ from "lodash";
 import utils from "../utils/jsUtils.js";
 import Vue from "vue";
@@ -155,7 +162,7 @@ Vue.use(VueToast);
 export default {
   components: {
     PulseLoader,
-    // BrandAdd,
+    BrandItem,
   },
   props: [],
   data() {
@@ -163,6 +170,9 @@ export default {
       data_loading: false,
       data: [],
       selectedItems: [],
+      selectedItem: {},
+      showItem: false,
+      itemDetailStatus: "new",
       totalRows: 1,
       noResultsMsg: "",
       currentRows: 1,
@@ -173,8 +183,8 @@ export default {
         previousPage: 0,
         nextPage: 2,
       },
-      currentSort: "brandName",
-      currentSortDir: "asc",
+      currentSort: "modifiedOn",
+      currentSortDir: "desc",
       sortIndicator: "fa-sort-up",
       searchText: "",
       filter: "active=true",
@@ -198,7 +208,6 @@ export default {
       title: "Brand List",
       subTitle:
         "Use this to maintain brands that are bought or sold. Assign a unique prefix, used in item numbers.",
-      showAdd: false,
     };
   },
   computed: {},
@@ -247,9 +256,8 @@ export default {
               console.log("i", i);
               return;
             });
-            const success = await Promise.all(promises);
+            await Promise.all(promises);
             // Success
-            console.log("success:", success);
             const msg = `Successfully changed ${
               i >= 200 ? "maximum of 200" : i
             } records`;
@@ -262,11 +270,48 @@ export default {
             console.error(`Error saving record: ${err}`);
             Vue.$toast.open({
               message: `Error saving record: ${err}`,
-              type: "error",
+              type: "danger",
               duration: 5000,
             });
           }
           break;
+      }
+    },
+    deleteRows: async function () {
+      // Delete all rows selected
+      let i = 0;
+      try {
+        // Cycle through selected items
+        if (!this.selectedItems) return;
+        if (this.selectedItems.length === 0) return;
+
+        const promises = this.selectedItems.map(async (itemId) => {
+          const foundItem = _.find(this.data, { id: itemId });
+          // Delete record from db
+          this.data_loading = true;
+          await BrandService.deleteBrand(foundItem.id);
+          this.data_loading = false;
+          i++;
+          return;
+        });
+        await Promise.all(promises);
+        this.getData();
+        // Success
+        const msg = `Successfully deleted ${
+          i >= 200 ? "maximum of 200" : i
+        } records`;
+        Vue.$toast.open({
+          message: msg,
+          type: "success",
+          duration: 5000,
+        });
+      } catch (err) {
+        console.error(`Error saving record: ${err}`);
+        Vue.$toast.open({
+          message: `Error saving record: ${err}`,
+          type: "danger",
+          duration: 5000,
+        });
       }
     },
     getSequenceNum: function (index) {
@@ -314,13 +359,65 @@ export default {
         },
       });
     },
-    openBrand: function (item) {
-      this.$router.push({
-        name: "brand-item",
-        params: {
-          item: item,
-        },
-      });
+    showItemDetail: function (item) {
+      if (item === "new") {
+        this.selectedItem = {};
+        // Change so BrandItem Watch fires???
+        this.itemDetailStatas = "null";
+        this.itemDetailStatus = "new";
+      } else {
+        this.selectedItem = item;
+        this.itemDetailStatas = "null";
+        this.itemDetailStatus = "update";
+      }
+      this.showItem = true;
+
+      // this.$router.push({
+      //   name: "brand-item",
+      //   params: {
+      //     item: item,
+      //   },
+      // });
+    },
+    closeItemDetail: async function (detailItem) {
+      try {
+        this.showItem = false;
+        console.log("detailItem", detailItem);
+        if (detailItem === "cancel") return null;
+        // If detailItem is found in list, update it
+        // Otherwise, add to first of data items array
+        if (detailItem.id === "") {
+          // Save new item to db and add to data array
+          this.data_loading = true;
+          await BrandService.createBrand(detailItem);
+          // utils.upsertArray(this.data, newItem);
+          // Sort by createdOn desc
+          this.currentSort = "modifiedOn";
+          this.currentSortDir = "asc";
+          this.sort("modifiedOn");
+          // Toast: New item added
+          const msg = `Successfully added brand ${detailItem.brandName} to database`;
+          Vue.$toast.open({
+            message: msg,
+            type: "success",
+            duration: 5000,
+          });
+        } else {
+          // Update existing
+          await BrandService.saveBrand(detailItem);
+          const msg = `Successfully updated brand ${detailItem.brandName} to database`;
+          Vue.$toast.open({
+            message: msg,
+            type: "success",
+            duration: 5000,
+          });
+          // utils.upsertArray(this.data, detailItem);
+        }
+      } catch (err) {
+        console.error(`Error closing Item Detail record: `, err);
+      } finally {
+        this.data_loading = false;
+      }
     },
     getSortIndicator(field) {
       // Show indicator if current column is being sorted

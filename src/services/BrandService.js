@@ -42,12 +42,30 @@ export default {
     return apiClient.get(`/brands/${id}`)
   },
 
+  // Create a single record
+  async createBrand(payload) {
+    try {
+      const newItem = await apiClient.post('/brands', payload)
+      return newItem
+    } catch (err) {
+      console.error(`Error creating record: ${err}`)
+    }
+  },
   // Save a single record
   async saveBrand(payload) {
     try {
-      await apiClient.put(`/brands/${payload.id}`, payload)
+      const record = await apiClient.put(`/brands/${payload.id}`, payload)
+      return record
     } catch (err) {
       console.error(`Error saving record: ${err}`)
+    }
+  },
+  // Create a single record
+  async deleteBrand(id) {
+    try {
+      await apiClient.delete(`/brands/${id}`)
+    } catch (err) {
+      console.error(`Error creating record: ${err}`)
     }
   }
 }

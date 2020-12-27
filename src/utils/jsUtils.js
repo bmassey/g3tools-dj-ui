@@ -34,3 +34,10 @@ exports.arrToggle = function(array, value) {
     array.splice(index, 1)
   }
 }
+
+exports.upsertArray = function(array, item) {
+  const i = array.findIndex((_item) => _item.id === item.id)
+  if (i > -1) array[i] = item
+  // else array.push(item)
+  else array.splice(0, 0, item)
+}

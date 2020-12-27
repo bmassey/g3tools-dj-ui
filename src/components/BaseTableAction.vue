@@ -64,12 +64,13 @@ i:hover {
   vertical-align: middle;
 }
 .delete-icon {
-  font-size: 1.5em;
+  font-size: 1.4em;
   color: rgb(73, 73, 73);
   vertical-align: middle;
 }
 .refresh-icon {
-  font-size: 1.5em;
+  font-size: 1.4em;
+  vertical-align: middle;
   color: rgb(73, 73, 73);
 }
 </style>
