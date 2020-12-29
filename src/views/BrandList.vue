@@ -127,9 +127,8 @@
         <div class="">
           <BasePagination
             :pagination="pagination"
-            on-change-page-number-change-page-size="
-          on-change-page-size-
-          @change-page-number="
+            @change-page-number="onChangePageNumber"
+            @change-page-size="onChangePageSize"
           />
         </div>
       </div>

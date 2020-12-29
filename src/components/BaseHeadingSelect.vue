@@ -12,9 +12,12 @@
       <template #button-content>
         <b-icon icon="caret-down" variant="secondary" />
       </template>
-      <b-dd-item-btn :disabled="selected" @click="actionClicked('select-all')">
+      <b-dropdown-item-btn
+        :disabled="selected"
+        @click="actionClicked('select-all')"
+      >
         Select All
-      </b-dd-item-btn>
+      </b-dropdown-item-btn>
       <b-dd-item-btn
         :disabled="!selected"
         @click="actionClicked('un-select-all')"
@@ -102,7 +105,7 @@ export default {
   padding-bottom: 0px;
   margin-bottom: 5px;
   margin-right: 20px;
-  margin-left: -10px;
+  /* margin-left: -10px; */
 }
 ::v-deep > button:hover {
   background-color: rgb(199, 199, 199);
