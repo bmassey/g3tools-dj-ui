@@ -20,6 +20,7 @@ Vue.use(VeeValidate, {
 
 Vue.use(BootstrapVue)
 Vue.use(BootstrapVueIcons)
+
 // Globally register all base components
 const requireComponent = require.context(
   './components',
@@ -27,7 +28,7 @@ const requireComponent = require.context(
   /Base[A-Z]\w+\.(vue|js)$/
 )
 
-requireComponent.keys().forEach((fileName) => {
+requireComponent.keys().forEach(fileName => {
   const componentConfig = requireComponent(fileName)
 
   const componentName = upperFirst(
@@ -44,5 +45,5 @@ Vue.component('NavBar', require('./components/NavBar.vue').default)
 new Vue({
   router,
   store,
-  render: (h) => h(App)
+  render: h => h(App)
 }).$mount('#app')

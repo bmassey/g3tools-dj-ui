@@ -27,25 +27,27 @@
 <script>
 export default {
   props: {
-    buttons: Array
+    namespace: { type: String, default: '' }
   },
   data() {
     return {
-      valueOption: "active"
+      valueOption: 'active'
     }
   },
   computed: {
     buttonsLocal() {
-      return this.buttons
+      return this.state.activeFilterButtons
+    },
+    state() {
+      return this.$store.state[this.namespace]
     }
   },
   methods: {
-    buttonClass: function(isActive) {
-      return isActive ? "active btn-secondary" : "btn-outline-secondary"
+    buttonClass: function (isActive) {
+      return isActive ? 'active btn-secondary' : 'btn-outline-secondary'
     },
     checkChanged() {
-      console.log("checkChanged: ", this.valueOption)
-      this.$emit("change-option", this.valueOption)
+      this.$store.dispatch(`${this.namespace}/filterActive`, this.valueOption)
     }
   }
 }

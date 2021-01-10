@@ -23,3 +23,15 @@
 .caret:hover:before {
   border-top-color: #222;
 }
+.loading {
+  position: absolute;
+  /* background: antiquewhite; */
+  z-index: 9999;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  height: fit-content;
+  width: fit-content;
+}

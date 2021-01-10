@@ -42,33 +42,101 @@
 </template>
 
 <script>
-import "../app.css";
+import '../app.css'
+import _ from 'lodash'
+import Vue from 'vue'
+import VueToast from 'vue-toast-notification'
+// Import one of the available themes
+import 'vue-toast-notification/dist/theme-default.css'
+import 'vue-toast-notification/dist/theme-sugar.css'
+
+Vue.use(VueToast)
+
 export default {
-  props: { selected: { type: Boolean, default: false } },
+  props: { namespace: { type: String, default: '' } },
   data() {
     return {
       //: this.selected,
-    };
+    }
+  },
+  computed: {
+    state() {
+      return this.$store.state[this.namespace]
+    },
+    selected() {
+      return this.state.selectedItems.length > 0
+    }
   },
   methods: {
     checkClicked() {
       if (this.selected) {
         // At least one row is selected: Clear all
-        //this.isChecked = false;
-        this.$emit("heading-select-changed", false);
+        this.headingSelectChanged(false)
       } else {
         // Nothing is selected: Select all
-        //this.isChecked = true;
-        this.$emit("heading-select-changed", true);
+        this.headingSelectChanged(true)
       }
     },
-    actionClicked(action) {
-      if (action === "select-all") this.isChecked = true;
-      else if (action === "unselect-all") this.isChecked = false;
-      this.$emit("heading-action", action);
+    async actionClicked(action) {
+      if (action === 'select-all') this.isChecked = true
+      else if (action === 'unselect-all') this.isChecked = false
+      await this.headingAction(action)
     },
-  },
-};
+    headingSelectChanged: function (checked) {
+      // If checked, select all rows
+      this.$store.dispatch(
+        `${this.namespace}/selectedItemsSet`,
+        checked ? _.map(this.state.items, 'id') : []
+      )
+    },
+    headingAction: async function (action) {
+      let i = 0
+      switch (action) {
+        case 'select-all':
+          this.headingSelectChanged(true)
+          break
+        case 'un-select-all':
+          this.headingSelectChanged(false)
+          break
+        default:
+          try {
+            // Change records to active / inactive
+            const promises = this.state.selectedItems.map(async (itemId) => {
+              // Change item active status in items list and save
+              const foundItem = _.find(this.state.items, { id: itemId })
+              let clonedItem = _.cloneDeep(foundItem)
+              clonedItem.active = action === 'change-active' ? true : false
+              // Save to list and database
+              await this.$store.dispatch(`${this.namespace}/itemSave`, {
+                item: clonedItem,
+                postToast: false
+              })
+              i++
+              return
+            })
+            await Promise.all(promises)
+            // Success: Tell user
+            const msg = `Successfully changed ${
+              i >= 200 ? 'maximum of 200' : i
+            } records`
+            Vue.$toast.open({
+              message: msg,
+              type: 'success',
+              duration: 7000
+            })
+          } catch (err) {
+            console.error(`Error saving record: ${err}`)
+            Vue.$toast.open({
+              message: `Error saving record: ${err}`,
+              type: 'danger',
+              duration: 7000
+            })
+          }
+          break
+      }
+    }
+  }
+}
 </script>
 
 <style lang="css" scoped>

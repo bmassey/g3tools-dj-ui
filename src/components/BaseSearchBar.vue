@@ -31,37 +31,30 @@
 <script>
 export default {
   props: {
-    searchText: {
-      type: String,
-      default: "",
-    },
+    namespace: { type: String, default: '' }
   },
   data() {
     return {
-      localSearchText: this.searchText,
-    };
+      localSearchText: ''
+    }
   },
-  watch: {
-    // searchText: {
-    //   handler: function(n) {
-    //     console.log("watch:", n)
-    //     this.localSearchText = n
-    //   },
-    //   deep: true,
-    // },
+  computed: {
+    state() {
+      return this.$store.state[this.namespace]
+    }
   },
   methods: {
     search() {
-      if (this.localSearchText === "") return;
-      this.$emit("search-attempt", this.localSearchText);
+      if (this.localSearchText === '') return
+      this.$store.dispatch(`${this.namespace}/search`, this.localSearchText)
     },
     clear() {
-      if (this.localSearchText === "") return;
-      this.localSearchText = "";
-      this.$emit("search-attempt", "");
-    },
-  },
-};
+      if (this.localSearchText === '') return
+      this.localSearchText = ''
+      this.$store.dispatch(`${this.namespace}/search`, this.localSearchText)
+    }
+  }
+}
 </script>
 
 <style lang="css" scoped>

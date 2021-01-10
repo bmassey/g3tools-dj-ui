@@ -1,23 +1,28 @@
 <template>
   <div class="container" style="margin-top: 120px">
-    <b-form @submit="onSubmit">
+    <b-form @submit.prevent="onSubmit">
       <!-- Main form card -->
       <b-card
         class="shadow-sm brand-item-card"
-        :class="{ 'new-item-card': status === 'new' }"
+        :class="{ 'new-item-card': mode === 'new' }"
         header-tag="header"
         footer-tag="footer"
       >
+        <pulse-loader
+          class="loading"
+          :loading="state.dataLoading"
+        ></pulse-loader>
+
         <!-- Header -->
         <template #header>
           <h4 class="mb-0">
-            {{ status === "new" ? "New Brand Item" : "Brand Item" }}
+            {{ mode === 'new' ? 'New Brand Item' : 'Brand Item' }}
           </h4>
         </template>
         <!-- Card body slot -->
         <template>
           <div class="row">
-            <div class="" :class="status === 'new' ? 'col-sm-12' : 'col-sm-6'">
+            <div class="" :class="mode === 'new' ? 'col-sm-12' : 'col-sm-6'">
               <!-- Brand name -->
               <b-form-group
                 id="input-group-brand-name"
@@ -26,9 +31,9 @@
                 description="Enter a unique brand name."
               >
                 <b-form-input
-                  id="inputBrandName"
-                  ref="inputBrandName"
-                  v-model="form.brandName"
+                  id="input-brand-name"
+                  ref="input-brand-name"
+                  v-model="brand.brandName"
                   type="text"
                   placeholder=""
                   autocomplete="off"
@@ -45,14 +50,14 @@
               >
                 <b-form-input
                   id="input-prefix"
-                  v-model="form.abbreviation"
+                  v-model="brand.abbreviation"
                   type="text"
                   placeholder=""
                   autocomplete="off"
                   required
                 ></b-form-input>
                 <b-form-invalid-feedback id="input-prefix-live-feedback">{{
-                  veeErrors.first("input-prefix")
+                  veeErrors.first('input-prefix')
                 }}</b-form-invalid-feedback>
               </b-form-group>
               <!-- Brand vendor -->
@@ -64,7 +69,7 @@
               >
                 <b-form-input
                   id="input-vendor"
-                  v-model="form.vendorName"
+                  v-model="brand.vendorName"
                   type="text"
                   placeholder=""
                   autocomplete="off"
@@ -72,19 +77,16 @@
                 ></b-form-input>
               </b-form-group>
               <!-- Active -->
-              <b-form-group id="input-group-active" label-for="switch-active">
-                <b-form-checkbox
-                  v-model="form.active"
-                  name="switch-active"
-                  switch
-                >
+              <b-form-group id="test2" label-for="test3">
+                <b-form-checkbox v-model="brand.active" name="test3" switch>
                   Active
                 </b-form-checkbox>
               </b-form-group>
             </div>
-            <div v-show="status !== 'new'" class="col-sm-6">
-              <BaseInformationCard :info="info" />
-              <BaseHistoryCard :item="item" />
+            <!-- Info and History -->
+            <div v-show="mode !== 'new'" class="col-sm-6">
+              <BaseInformationCard :info="brand" />
+              <BaseHistoryCard :item="brand" />
             </div>
           </div>
           <!-- Description/Notes -->
@@ -96,7 +98,7 @@
           >
             <b-form-textarea
               id="input-mptes"
-              v-model="form.description"
+              v-model="brand.description"
               type="textarea"
               placeholder=""
               autocomplete="off"
@@ -118,86 +120,95 @@
 </template>
 
 <script>
+import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
+
 export default {
-  name: "BrandItem",
+  components: {
+    PulseLoader
+  },
+  name: 'BrandItem',
   props: {
+    id: { type: Number, default: -1 },
+    namespace: { type: String, default: 'Brand' },
     item: { type: Object, default: null },
-    status: { type: String, default: "new" },
+    mode: { type: String, default: 'new' }
   },
   data() {
     return {
-      form: {
-        brandName: this.item.brandName || "",
-        abbreviation: this.item.abbreviation || "",
-        vendorName: this.item.vendorName || "",
-        active: this.item.active || true,
-        description: this.item.description || "",
-        id: this.item.id || "",
-      },
-      info: {
-        id: this.item.id || "",
-        createdOn: this.item.createdOn || "",
-        createdBy: this.item.createdBy || "",
-        modifiedOn: this.item.modifiedOn || "",
-        modifiedBy: this.item.modifiedBy || "",
-      },
-    };
+      brand: {}
+    }
   },
-  computed: {},
-  watch: {
-    item: function (newValue) {
-      this.refreshData(newValue);
-    },
+  async created() {
+    // Get record if not new
+    if (this.mode !== 'new') {
+      await this.fetchItem()
+      this.brand = this.setBrandFromStore()
+    } else {
+      this.brand = this.createFreshBrand()
+    }
+  },
+  computed: {
+    state() {
+      return this.$store.state[this.namespace]
+    }
   },
   mounted() {
-    // this.test();
+    //this.$refs.inputBrandName.focus
   },
   methods: {
-    refreshData: function (newValue) {
-      if (newValue === null || this.status === "new") {
-        this.form.brandName = "";
-        this.form.abbreviation = "";
-        this.form.vendorName = "";
-        this.form.active = true;
-        this.form.description = "";
-        this.form.id = "";
-        this.info.id = "";
-        this.info.createdOn = "";
-        this.info.createdBy = "";
-        this.info.modifiedOn = "";
-        this.info.modifiedBy = "";
-      } else {
-        this.form.brandName = newValue.brandName;
-        this.form.abbreviation = newValue.abbreviation;
-        this.form.vendorName = newValue.vendorName;
-        this.form.active = newValue.active;
-        this.form.description = newValue.description;
-        this.form.id = newValue.id;
-        this.info.id = newValue.id;
-        this.info.createdOn = newValue.createdOn;
-        this.info.createdBy = newValue.createdBy;
-        this.info.modifiedOn = newValue.modifiedOn;
-        this.info.modifiedBy = newValue.modifiedBy;
+    async fetchItem() {
+      await this.$store.dispatch(`${this.namespace}/fetchItem`, this.id)
+    },
+    createFreshBrand() {
+      return {
+        brandName: '',
+        abbreviation: '',
+        vendorName: '',
+        active: true,
+        description: '',
+        id: '',
+        createdOn: '',
+        createdBy: '',
+        modifiedOn: '',
+        modifiedBy: ''
       }
-      this.$refs.inputBrandName.focus;
     },
-    // test: function () {
-    //   console.log("test", this.description);
-    // },
-    onSubmit: function () {
-      // Save record
-      //this.$router.go(-2);
-      // this.$router.push({ path: `/brand-list` });
-      this.$emit("item-closed", this.form);
+    setBrandFromStore() {
+      return {
+        brandName: this.state.item.brandName,
+        abbreviation: this.state.item.abbreviation,
+        vendorName: this.state.item.vendorName,
+        active: this.state.item.active,
+        description: this.state.item.description,
+        id: this.state.item.id,
+        createdOn: this.state.item.createdOn,
+        createdBy: this.state.item.createdBy,
+        modifiedOn: this.state.item.modifiedOn,
+        modifiedBy: this.state.item.modifiedBy
+      }
     },
-    onCancel: function () {
-      // Handle # at end of url
-      this.$emit("item-closed", "cancel");
-      //this.$router.go(-2);
-      // this.$router.push({ path: `/brand-list` });
+    async onSubmit() {
+      if (this.mode === 'new') await this.createBrand()
+      else await this.saveBrand()
+      this.$router.push({
+        name: 'brand-list',
+        params: { force: true, sort: 'modifiedOn' }
+      })
     },
-  },
-};
+    onCancel() {
+      this.$router.go(-1)
+    },
+    async createBrand() {
+      await this.$store.dispatch(`${this.namespace}/itemCreate`, this.brand)
+    },
+    async saveBrand() {
+      await this.$store.dispatch(`${this.namespace}/itemSave`, {
+        item: this.brand,
+        postToast: true
+      })
+    }
+  }
+}
 </script>
 
 <style lang="css" scoped>

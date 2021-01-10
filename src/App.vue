@@ -3,16 +3,18 @@
     <div id="nav">
       <NavBar />
     </div>
-    <router-view />
+    <router-view :key="$route.fullPath" />
+    <!-- <router-view /> -->
   </div>
 </template>
 
 <script>
 //import NavBar from "@/components/NavBar.vue";
-import NavBar from "@/components/NavBar.vue";
+import NavBar from '@/components/NavBar.vue'
 
 export default {
   Components: {
-    NavBar,
-  },
-};
+    NavBar
+  }
+}
+</script>

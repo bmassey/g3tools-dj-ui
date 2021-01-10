@@ -1,13 +1,14 @@
 <template>
   <div class="d-flex justify-content-end">
     <div>
-      <label class="d-inline-block mr-2" for="rowsPerPage">Rows per page</label>
+      <label class="d-inline-block mr-2" for="rowsPerPage">Page size</label>
       <select
-        v-model="pageSize"
+        v-model="localPageSize"
         name="rowsPerPage"
         class="d-inline-block custom-select mr-3"
+        :disabled="state.dataLoading"
         style="width: auto"
-        @change="changePageSize"
+        @change="pageSizeSet"
       >
         <option>10</option>
         <option>25</option>
@@ -17,75 +18,98 @@
         <option>5000</option>
       </select>
     </div>
-    <nav v-show="pagination.maxPages > 1" aria-label="Table pagination">
+    <nav v-show="state.totalPages > 1" aria-label="Table pagination">
       <ul class="pagination justify-content-end">
         <!-- First page button -->
         <li
           class="page-item"
-          :class="{ disabled: pagination.currentPage === 1 }"
+          :class="{ disabled: page === 1 || state.dataLoading }"
         >
-          <a
+          <router-link
             class="page-link"
-            href="#"
-            :tabindex="pagination.currentPage === 1 ? '-1' : ''"
-            @click="changePageNumber(1)"
-            >First</a
+            :to="{ name: routeName, query: { page: 1 } }"
+            rel="prev"
+          >
+            &lt;&lt;</router-link
           >
         </li>
         <!-- Previous page button -->
         <li
-          class="page-item"
-          :class="{ disabled: pagination.currentPage === 1 }"
+          class="page-item prev-page"
+          :class="{ disabled: page === 1 || state.dataLoading }"
         >
-          <a
+          <router-link
             class="page-link"
-            href="#"
-            :tabindex="pagination.currentPage === 1 ? '-1' : ''"
-            @click="changePageNumber(pagination.currentPage - 1)"
-            >Previous</a
+            :to="{ name: routeName, query: { page: page - 1 } }"
+            rel="prev"
+          >
+            &lt;</router-link
           >
         </li>
         <!-- Pagination buttons based on page number -->
         <li
-          v-for="(page, index) in pageArray"
+          v-for="(usePage, index) in pageArray"
           :key="index"
           class="page-item"
-          :class="{ active: pagination.currentPage === page }"
+          :class="[
+            {
+              active: page === usePage
+            },
+            { disabled: state.dataLoading && page !== usePage }
+          ]"
         >
-          <a class="page-link" href="#" @click="changePageNumber(page)">{{
-            page
-          }}</a>
+          <router-link
+            class="page-link"
+            :to="{ name: routeName, query: { page: usePage } }"
+            rel="next"
+          >
+            {{ usePage }}</router-link
+          >
         </li>
+        <!-- Max page -->
+        <template v-if="showMaxPage">
+          <p class="elipsis">...</p>
+          <li
+            class="page-item"
+            :class="{
+              disabled: page === state.totalPages || state.dataLoading
+            }"
+          >
+            <router-link
+              class="page-link"
+              :to="{ name: routeName, query: { page: state.totalPages } }"
+              rel="next"
+            >
+              {{ state.totalPages }}</router-link
+            >
+          </li>
+        </template>
         <!-- Next page button -->
         <li
-          class="page-item"
+          class="page-item next-page"
           :class="{
-            disabled: pagination.currentPage === pagination.maxPages,
+            disabled: page === state.totalPages || state.dataLoading
           }"
         >
-          <a
+          <router-link
             class="page-link"
-            href="#"
-            :tabindex="
-              pagination.currentPage === pagination.maxPages ? '-1' : ''
-            "
-            @click="changePageNumber(pagination.currentPage + 1)"
-            >Next</a
+            :to="{ name: routeName, query: { page: page + 1 } }"
+            rel="next"
+          >
+            &gt;</router-link
           >
         </li>
         <!-- Last page button -->
         <li
           class="page-item"
-          :class="{ active: pagination.currentPage === pagination.maxPages }"
+          :class="{ disabled: page === state.totalPages || state.dataLoading }"
         >
-          <a
+          <router-link
             class="page-link"
-            href="#"
-            :tabindex="
-              pagination.currentPage === pagination.maxPages ? '-1' : ''
-            "
-            @click="changePageNumber(pagination.maxPages)"
-            >Last</a
+            :to="{ name: routeName, query: { page: state.totalPages } }"
+            rel="last"
+          >
+            &gt;&gt;</router-link
           >
         </li>
       </ul>
@@ -94,67 +118,106 @@
 </template>
 
 <script>
-import utils from "../utils/jsUtils.js";
-import config from "../../config.js";
+import utils from '../utils/jsUtils.js'
+import config from '../../config.js'
+// import { mapState, mapActions } from 'vuex'
 
 export default {
   props: {
-    pagination: Object,
-    // pagination: {
-    //   pageSize: 25,
-    //   currentPage: 1,
-    //   maxPages: 2,
-    //   previousPage: 0,
-    //   nextPage: 2,
-    // },
+    namespace: { type: String, default: '' }
   },
   data() {
     return {
-      pageSize: this.pagination.pageSize,
-    };
+      localPageSize: 0
+    }
   },
   computed: {
     // Create array
     pageArray: function () {
-      const configPages = config.maxTablePages;
-      let newArray = utils.createNumberArray(1, configPages);
-      const halfFloor = Math.floor(configPages / 2);
-      const halfCeiling = Math.ceil(configPages / 2);
-      //[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-      // For 10 pages, if current page is 4 or below, use default 1-10 pages
-      // If current page is > max page - 4 (like 81 for 85 max pages),
-      //  create pages from 76-85. Otherwise, try and keep the active page in middle
-      if (this.pagination.currentPage <= halfFloor) return newArray;
-      else if (
-        this.pagination.currentPage >=
-        this.pagination.maxPages - halfFloor
-      ) {
-        // High end
-        newArray = utils.createNumberArray(
-          this.pagination.maxPages - (configPages - 1),
-          this.pagination.maxPages
-        );
-      } else {
-        // Page location is somewhere in the middle
-        // Mid-range location: create pages so that current page is rougly mid-point
-        newArray = utils.createNumberArray(
-          this.pagination.currentPage - halfFloor,
-          this.pagination.currentPage + halfCeiling
-        );
-      }
-      return newArray;
+      return this.createPageArray()
     },
+    showMaxPage() {
+      const lastItem = this.pageArray[this.pageArray.length - 1]
+      return lastItem < this.state.totalPages
+    },
+    routeName() {
+      return `${this.namespace.toLowerCase()}-list`
+    },
+    page() {
+      const newPage = parseInt(this.$route.query.page) || 1
+      return newPage
+    },
+    state() {
+      return this.$store.state[this.namespace]
+    }
+  },
+  beforeMount() {
+    this.localPageSize = this.state.pageSize
   },
   methods: {
-    changePageSize() {
-      if (this.pageSize === "All") this.pageSize = -1;
-      this.$emit("change-page-size", parseInt(this.pageSize));
+    pageSizeSet() {
+      this.$store.dispatch(
+        `${this.namespace}/pageSizeSet`,
+        parseInt(this.localPageSize)
+      )
+      this.$store.dispatch(`${this.namespace}/fetchItems`, true)
     },
-    changePageNumber(page) {
-      this.$emit("change-page-number", parseInt(page));
-    },
-  },
-};
+    createPageArray() {
+      let newArray = []
+      const configPages = config.maxTablePages
+      const firstItem = this.state.pageArray[0]
+      const lastItem = this.state.pageArray[this.state.pageArray.length - 1]
+
+      // Deterimine the array of pagination buttons
+      if (this.page < configPages) {
+        // Low end (1-7)
+        newArray = utils.createNumberArray(1, configPages)
+      } else if (this.page > this.state.totalPages - configPages) {
+        // High end: Show top page numbers
+        newArray = utils.createNumberArray(
+          this.state.totalPages - configPages,
+          this.state.totalPages
+        )
+      } else {
+        // Page location is somewhere in the middle
+        // Always have the next page on the bottom or top of the list
+        let from = firstItem
+        let to = lastItem
+        if (this.page === firstItem) {
+          // Bottom of range
+          from = firstItem - 1
+          to = from + 6
+        } else if (this.page === lastItem) {
+          // Top of range
+          to = lastItem + 1
+          from = to - 6
+        }
+        newArray = utils.createNumberArray(from, to)
+      }
+      this.$store.dispatch(`${this.namespace}/pageArraySet`, [...newArray])
+      return newArray
+    }
+  }
+}
 </script>
 
-<style lang="css" scoped></style>
+<style lang="css" scoped>
+.next-page {
+  margin-left: 12px;
+}
+.prev-page {
+  margin-right: 12px;
+}
+.elipsis {
+  margin-bottom: 0px;
+  margin-top: 15px;
+  margin-left: 1px;
+  margin-right: 1px;
+}
+.page-link {
+  width: 37px;
+  padding-left: 0px;
+  padding-right: 0px;
+  text-align: center;
+}
+</style>

@@ -1,38 +1,44 @@
 <template>
   <div class="d-flex">
-    <label v-if="noResultsMsg !== ''">{{ noResultsMsg }}</label>
-    <label v-else-if="useShowing >= totalRows"
-      >Showing all <strong>{{ totalRows }}</strong> rows</label
+    <label v-if="state.totalRows === 0">{{ noResultsMsg }}</label>
+    <label v-else-if="useShowing >= state.totalRows"
+      >Showing all <strong>{{ state.totalRows }}</strong> rows</label
     >
     <label v-else
       >Showing <strong>{{ useShowing }}</strong> of
-      <strong>{{ totalRows }}</strong> rows</label
+      <strong>{{ state.totalRows }}</strong> rows</label
     >
-    <label v-show="selected > 0" class="ml-3 text-secondary">
+    <label v-show="state.selectedItems > 0" class="ml-3 text-secondary">
       <i
-        ><strong>{{ selected }}</strong> selected</i
+        ><strong>{{ state.selectedItems }}</strong> selected</i
       >
     </label>
   </div>
 </template>
 
 <script>
+// import { mapState } from 'vuex'
+
 export default {
   props: {
-    showing: { type: Number, default: 0 },
-    totalRows: { type: Number, default: 0 },
-    noResultsMsg: { type: String, default: "" },
-    selected: { type: Number, default: 0 },
+    namespace: { type: String, default: '' }
   },
   data() {
-    return {};
+    return {
+      noResultsMsg: 'No results'
+    }
   },
   computed: {
     useShowing: function () {
-      return this.totalRows < this.showing ? this.totalRows : this.showing;
+      return this.state.totalRows < this.state.pageSize
+        ? this.state.totalRows
+        : this.state.pageSize
     },
-  },
-};
+    state() {
+      return this.$store.state[this.namespace]
+    }
+  }
+}
 </script>
 
 <style lang="css" scoped></style>

@@ -2,7 +2,6 @@
   <div>
     <!-- Add -->
     <b-button
-      v-b-modal.add-modal
       class="b-button add-button"
       title="Add a new record"
       @click.prevent="$emit('action-add')"
@@ -13,7 +12,7 @@
     <b-button
       class="b-button refresh-button"
       title="Refresh the list"
-      @click.prevent="$emit('action-refresh')"
+      @click.prevent="refresh"
     >
       <i class="fas fa-sync-alt refresh-icon"></i>
     </b-button>
@@ -32,9 +31,22 @@
 <script>
 export default {
   props: {
-    selectedCount: { type: Number, default: 0 },
+    namespace: { type: String, default: '' }
   },
-};
+  computed: {
+    state() {
+      return this.$store.state[this.namespace]
+    },
+    selectedCount() {
+      return this.state.selectedItems.length
+    }
+  },
+  methods: {
+    refresh() {
+      this.$store.dispatch(`${this.namespace}/fetchItems`, true)
+    }
+  }
+}
 </script>
 
 <style lang="css" scoped>
@@ -46,7 +58,7 @@ i {
   transition: 0.2s;
 }
 i:hover {
-  transform: scale(1.2, 1.2);
+  transform: scale(1.1, 1.1);
 }
 
 .btn {

@@ -10,13 +10,13 @@ const apiClient = axios.create({
 })
 
 // before a request is made start the nprogress
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use(config => {
   //NProgress.start()
   return config
 })
 
 // before a response is returned stop nprogress
-apiClient.interceptors.response.use((response) => {
+apiClient.interceptors.response.use(response => {
   //NProgress.done()
   return response
 })
@@ -35,6 +35,7 @@ export default {
     if (searchText !== '') query = `${query}&searchText=${searchText}`
     if (filter != '') query = `${query}&filter=${filter}`
     const url = searchText !== '' || filter !== '' ? '/brands/find' : '/brands'
+
     return apiClient.get(`${url}${query}`)
   },
   // Get single record

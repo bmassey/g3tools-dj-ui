@@ -27,7 +27,8 @@ const routes = [
   {
     path: '/brand-list',
     name: 'brand-list',
-    component: BrandList
+    component: BrandList,
+    props: true
   },
   {
     path: '/brand-item/',
@@ -43,9 +44,21 @@ const routes = [
 ]
 
 const router = new VueRouter({
-  base: process.env.BASE_URL,
+  mode: 'history',
   routes,
-  mode: 'history'
+  hash: false,
+  base: process.env.BASE_URL
+  // scrollBehavior(to, from, savedPosition) {
+  //   const fromHistory = Boolean(savedPosition)
+  //   const savedHistory = state.routerHistory || []
+  //   if (fromHistory && savedHistory.length > 0) {
+  //     state.Global.state.routerHistory.splice(-1, 1)
+  //   } else {
+  //     state.Global.state.routerHistory.push(from)
+  //   }
+
+  //   return savedPosition || { x: 0, y: 0 }
+  // }
 })
 
 export default router
