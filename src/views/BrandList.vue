@@ -12,19 +12,22 @@ import VueToast from 'vue-toast-notification'
 // Import one of the available themes
 import 'vue-toast-notification/dist/theme-default.css'
 import 'vue-toast-notification/dist/theme-sugar.css'
+import config from '../../config'
 
 Vue.use(VueToast)
 
 export default {
   components: {},
-  props: [],
+  props: {
+    force: { default: false }
+  },
   data() {
     return {
       namespace: 'Brand',
-      force: { type: Boolean, default: false },
       sort: 'modifiedOn',
       selectedItem: {},
       showItem: false,
+      timer: '',
       columns: [
         {
           dbName: 'brandName',
@@ -77,21 +80,35 @@ export default {
       return this.$store.state[this.namespace]
     }
   },
-  created() {
-    this.fetchData()
+  async created() {
+    await this.fetchData()
+    this.timer = setInterval(
+      await this.autoRefresh,
+      config.autoListRefreshIntervalMin * 60 * 1000
+    )
   },
   async mounted() {
     // runs when the element is injected into the browser
   },
+  beforeDestroy() {
+    clearInterval(this.timer)
+  },
   methods: {
-    fetchData: function () {
+    autoRefresh: async function () {
+      const saveForce = this.force
+      this.force = true
+      await this.$store.dispatch('Brand/fetchItems', this.force)
+      this.force = saveForce
+      console.log('autorefresh', new Date().toLocaleString())
+    },
+    fetchData: async function () {
       if (this.force) {
         this.$store.dispatch('Brand/sortSet', {
           currentSort: this.sort,
           currentSortDir: 'desc'
         })
       }
-      this.$store.dispatch('Brand/fetchItems', this.force)
+      await this.$store.dispatch('Brand/fetchItems', this.force)
     },
     addBrand: function () {
       this.$router.push({

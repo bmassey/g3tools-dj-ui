@@ -31,7 +31,7 @@ const routes = [
     props: true
   },
   {
-    path: '/brand-item/',
+    path: '/brand-item/:id',
     name: 'brand-item',
     component: BrandItem,
     props: true

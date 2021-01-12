@@ -8,17 +8,27 @@
         header-tag="header"
         footer-tag="footer"
       >
-        <pulse-loader
+        <!-- <pulse-loader
           class="loading"
           :loading="state.dataLoading"
-        ></pulse-loader>
+        ></pulse-loader> -->
 
         <!-- Header -->
         <template #header>
-          <h4 class="mb-0">
-            {{ mode === 'new' ? 'New Brand Item' : 'Brand Item' }}
-          </h4>
+          <span style="display: flex; justify-content: space-between">
+            <h4 class="mb-0">
+              {{ mode === 'new' ? 'New Brand Item' : 'Brand Item' }}
+            </h4>
+            <!-- Spinner by refresh button -->
+            <b-spinner
+              class="loading-spinner"
+              v-if="state.dataLoading"
+              variant="primary"
+              type="grow"
+            ></b-spinner>
+          </span>
         </template>
+
         <!-- Card body slot -->
         <template>
           <div class="row">
@@ -35,6 +45,7 @@
                   ref="input-brand-name"
                   v-model="brand.brandName"
                   type="text"
+                  :disabled="state.dataLoading"
                   placeholder=""
                   autocomplete="off"
                   autofocus
@@ -52,6 +63,7 @@
                   id="input-prefix"
                   v-model="brand.abbreviation"
                   type="text"
+                  :disabled="state.dataLoading"
                   placeholder=""
                   autocomplete="off"
                   required
@@ -72,13 +84,19 @@
                   v-model="brand.vendorName"
                   type="text"
                   placeholder=""
+                  :disabled="state.dataLoading"
                   autocomplete="off"
                   required
                 ></b-form-input>
               </b-form-group>
               <!-- Active -->
               <b-form-group id="test2" label-for="test3">
-                <b-form-checkbox v-model="brand.active" name="test3" switch>
+                <b-form-checkbox
+                  v-model="brand.active"
+                  name="test3"
+                  switch
+                  :disabled="state.dataLoading"
+                >
                   Active
                 </b-form-checkbox>
               </b-form-group>
@@ -101,6 +119,7 @@
               v-model="brand.description"
               type="textarea"
               placeholder=""
+              :disabled="state.dataLoading"
               autocomplete="off"
             ></b-form-textarea>
           </b-form-group>
@@ -111,7 +130,12 @@
             <b-button class="mx-3" variant="secondary" @click="onCancel"
               >Cancel</b-button
             >
-            <b-button type="submit" variant="primary">Save Changes</b-button>
+            <b-button
+              type="submit"
+              variant="primary"
+              :disabled="state.dataLoading"
+              >Save Changes</b-button
+            >
           </div>
         </template>
       </b-card>
@@ -120,17 +144,18 @@
 </template>
 
 <script>
-import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
+// import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
+import config from '../../config'
 
 export default {
   components: {
-    PulseLoader
+    // PulseLoader
   },
   name: 'BrandItem',
   props: {
-    id: { type: Number, default: -1 },
+    // id: { type: Number, default: -1 },
+    id: { default: -1 },
     namespace: { type: String, default: 'Brand' },
-    item: { type: Object, default: null },
     mode: { type: String, default: 'new' }
   },
   data() {
@@ -141,9 +166,13 @@ export default {
   async created() {
     // Get record if not new
     if (this.mode !== 'new') {
-      await this.fetchItem()
+      // Retrieve item if config says so
+      this.brand = this.setBrandFromStore()
+      if (config.fetchDetailItemFromDb)
+        await this.$store.dispatch(`${this.namespace}/fetchItem`, this.id)
       this.brand = this.setBrandFromStore()
     } else {
+      // Initialize a blank object
       this.brand = this.createFreshBrand()
     }
   },
@@ -156,9 +185,9 @@ export default {
     //this.$refs.inputBrandName.focus
   },
   methods: {
-    async fetchItem() {
-      await this.$store.dispatch(`${this.namespace}/fetchItem`, this.id)
-    },
+    // async fetchItem() {
+    //   await this.$store.dispatch(`${this.namespace}/fetchItem`, this.id)
+    // },
     createFreshBrand() {
       return {
         brandName: '',
@@ -196,7 +225,12 @@ export default {
       })
     },
     onCancel() {
-      this.$router.go(-1)
+      // Push to list so we don't refresh
+      this.$router.push({
+        name: 'brand-list',
+        params: { force: false }
+      })
+      //      this.$router.go(-2)
     },
     async createBrand() {
       await this.$store.dispatch(`${this.namespace}/itemCreate`, this.brand)

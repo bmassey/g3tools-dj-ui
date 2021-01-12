@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="display: flex">
     <!-- Add -->
     <b-button
       class="b-button add-button"
@@ -18,13 +18,21 @@
     </b-button>
     <!-- Delete -->
     <b-button
-      class="b-button add-button"
+      class="b-button"
+      style="margin-right: 5px"
       title="Delete selected rows"
       :disabled="selectedCount === 0"
       @click.prevent="$emit('action-delete')"
     >
       <i class="fas fa-trash delete-icon"></i>
     </b-button>
+    <!-- Spinner by refresh button -->
+    <b-spinner
+      class="loading-spinner"
+      v-if="state.dataLoading"
+      variant="primary"
+      type="grow"
+    ></b-spinner>
   </div>
 </template>
 

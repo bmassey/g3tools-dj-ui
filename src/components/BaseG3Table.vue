@@ -64,7 +64,7 @@
             {{ getSequenceNum(index) }}
             <!-- {{ index }} -->
           </td>
-          <!-- Data defined in columns array -->
+          <!-- Data defined in columns array. -->
           <template v-for="field in columns">
             <td
               :key="field.dbName"
@@ -76,9 +76,7 @@
                     }
                   : { whiteSpace: 'noWrap' }
               "
-              @click="
-                field.columnType === 'link' ? showItemDetail(item.id) : null
-              "
+              @click="field.columnType === 'link' ? showItemDetail(item) : null"
             >
               <a v-if="field.columnType === 'link'" class="col-link" href="#">{{
                 item[field.dbName]
@@ -216,8 +214,8 @@ export default {
         this.$store.dispatch(`${this.namespace}/selectedItemsRemove`, index)
       }
     },
-    showItemDetail: function (id) {
-      if (id === 'new') {
+    showItemDetail: function (item) {
+      if (item === 'new') {
         // new item
         this.$router.push({
           name: 'brand-item',
@@ -227,11 +225,13 @@ export default {
           }
         })
       } else {
-        // show existing item
+        // Save item in store
+        this.$store.dispatch(`${this.namespace}/itemSet`, item)
+        // Route to item detail
         this.$router.push({
           name: 'brand-item',
           params: {
-            id: id,
+            id: parseInt(item.id),
             mode: 'update'
           }
         })

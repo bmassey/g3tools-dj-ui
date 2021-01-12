@@ -64,28 +64,29 @@ const actions = {
   dataLoadingSet({ commit }, isLoading) {
     commit('DATA_LOADING_SET', isLoading)
   },
-  fetchItem({ commit }, id) {
+  async fetchItem({ commit, dispatch }, id) {
     // Try and get brand from store first (avoids api call)
     //const item = getters.getBrandById(id)
 
     //if (item) {
     //  commit('ITEM_SET', item)
     //} else {
-    BrandService.getBrand(id)
-      .then(response => {
-        commit('ITEM_SET', response.data)
-      })
-      .catch(error => {
-        console.log('There was an error:', error.response)
-        // const notification = {
-        //   type: 'error',
-        //   message: `There was a problem fetching brand: ${error.message}`
-        // }
-        // dispatch('notification/add', notification, { root: true })
-      })
+    try {
+      dispatch('dataLoadingSet', true)
+      const response = await BrandService.getBrand(id)
+      commit('ITEM_SET', response.data)
+      dispatch('dataLoadingSet', false)
+    } catch (error) {
+      console.log('There was an error:', error.response)
+      // const notification = {
+      //   type: 'error',
+      //   message: `There was a problem fetching brand: ${error.message}`
+      // }
+      // dispatch('notification/add', notification, { root: true })
+    }
     //}
   },
-  fetchItems({ commit, state, dispatch }, force = false) {
+  async fetchItems({ commit, state, dispatch }, force = false) {
     // See if we already have this page in the store and use it, avoiding api call
     if (force) {
       if (router.history.current.path !== '/brand-list')
@@ -93,40 +94,39 @@ const actions = {
     }
     const currPage = router.history.current.query.page || 1
     if (currPage !== state.pageInStore || force) {
-      dispatch('dataLoadingSet', true)
-      BrandService.getBrands(
-        state.pageSize,
-        force ? 1 : currPage,
-        state.currentSort,
-        state.currentSortDir,
-        state.searchText,
-        state.filter
-      )
-        .then(response => {
-          // Success
-          commit('ITEMS_SET', response.data)
-          commit(
-            'TOTAL_ROWS_SET',
-            parseInt(response.headers['x-total-count']) || 0
-          )
-          commit(
-            'TOTAL_PAGES_SET',
-            parseInt(response.headers['x-max-pages']) || 0
-          )
-          // Set this to avoid api call when coming back to this page
-          commit('PAGE_IN_STORE_SET', currPage)
-          dispatch('dataLoadingSet', false)
-        })
-        .catch(error => {
-          console.log('There was an error retrieving brands:', error)
-          dispatch('dataLoadingSet', false)
-          //  dispatch('dataLoadingSet', false)
-          // const notification = {
-          //   type: 'error',
-          //   message: `There was a problem fetching brands: ${error.message}`
-          // }
-          // dispatch('notification/add', notification, { root: true })
-        })
+      try {
+        dispatch('dataLoadingSet', true)
+        const response = await BrandService.getBrands(
+          state.pageSize,
+          force ? 1 : currPage,
+          state.currentSort,
+          state.currentSortDir,
+          state.searchText,
+          state.filter
+        )
+        // Success
+        commit('ITEMS_SET', response.data)
+        commit(
+          'TOTAL_ROWS_SET',
+          parseInt(response.headers['x-total-count']) || 0
+        )
+        commit(
+          'TOTAL_PAGES_SET',
+          parseInt(response.headers['x-max-pages']) || 0
+        )
+        // Set this to avoid api call when coming back to this page
+        commit('PAGE_IN_STORE_SET', currPage)
+        dispatch('dataLoadingSet', false)
+      } catch (error) {
+        console.log('There was an error retrieving brands:', error)
+        dispatch('dataLoadingSet', false)
+        //  dispatch('dataLoadingSet', false)
+        // const notification = {
+        //   type: 'error',
+        //   message: `There was a problem fetching brands: ${error.message}`
+        // }
+        // dispatch('notification/add', notification, { root: true })
+      }
     }
   },
   filterActive({ commit, dispatch }, activeOption) {
@@ -137,6 +137,25 @@ const actions = {
   },
   itemAdd({ commit }, item) {
     commit('ITEM_ADD', item)
+  },
+  itemCreate({ commit }, item) {
+    // Save to database
+    commit('DATA_LOADING_SET', true)
+    return BrandService.createBrand(item)
+      .then(() => {
+        // Call mutation after successful save
+        console.log('saved successfully', item)
+        commit('ITEM_ADD', item)
+        const msg = `Successfully added brand ${item.brandName} to database`
+        toast(msg, 'success')
+        commit('DATA_LOADING_SET', false)
+      })
+      .catch(error => {
+        const msg = `There was a problem creating your brand: ${error.message}`
+        toast(msg, 'error')
+        commit('DATA_LOADING_SET', false)
+        throw error
+      })
   },
   itemEdit({ commit }, item) {
     commit('ITEM_EDIT', item)
@@ -162,24 +181,8 @@ const actions = {
         throw error
       })
   },
-  itemCreate({ commit }, item) {
-    // Save to database
-    commit('DATA_LOADING_SET', true)
-    return BrandService.createBrand(item)
-      .then(() => {
-        // Call mutation after successful save
-        console.log('saved successfully', item)
-        commit('ITEM_ADD', item)
-        const msg = `Successfully added brand ${item.brandName} to database`
-        toast(msg, 'success')
-        commit('DATA_LOADING_SET', false)
-      })
-      .catch(error => {
-        const msg = `There was a problem creating your brand: ${error.message}`
-        toast(msg, 'error')
-        commit('DATA_LOADING_SET', false)
-        throw error
-      })
+  itemSet({ commit }, item) {
+    commit('ITEM_SET', item)
   },
   pageArraySet({ commit }, value) {
     commit('PAGE_ARRAY_SET', value)
