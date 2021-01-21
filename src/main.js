@@ -4,22 +4,16 @@ import router from './router'
 import store from './store'
 import upperFirst from 'lodash/upperFirst'
 import camelCase from 'lodash/camelCase'
-import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
+import { BootstrapVue, BootstrapVueIcons, BVToastPlugin } from 'bootstrap-vue'
+import Vuelidate from 'vuelidate'
+
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import VeeValidate from 'vee-validate'
-
-Vue.use(VeeValidate, {
-  // This is the default
-  inject: true,
-  // Important to name this something other than 'fields'
-  fieldsBagName: 'veeFields',
-  // This is not required but avoids possible naming conflicts
-  errorBagName: 'veeErrors'
-})
 
 Vue.use(BootstrapVue)
 Vue.use(BootstrapVueIcons)
+Vue.use(BVToastPlugin)
+Vue.use(Vuelidate)
 
 // Globally register all base components
 const requireComponent = require.context(
@@ -47,3 +41,16 @@ new Vue({
   store,
   render: h => h(App)
 }).$mount('#app')
+
+// Directives
+Vue.directive('uppercase', {
+  update(el) {
+    const sourceValue = el.value
+    const newValue = sourceValue.toUpperCase()
+
+    if (sourceValue !== newValue) {
+      el.value = newValue
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+  }
+})

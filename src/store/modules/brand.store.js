@@ -1,5 +1,4 @@
 import BrandService from '@/services/BrandService'
-import { toast } from '@/utils/uiUtils'
 import router from '../../router'
 import _ from 'lodash'
 
@@ -10,15 +9,16 @@ const inititalState = () => ({
     'Use this to maintain a list of brands, including a unique prefix, used in brand numbers.',
   dataLoading: false,
   items: [],
+  itemsLastRefreshed: '',
   totalRows: 0,
   item: {},
   pageSize: 50,
   pageInStore: 0,
   totalPages: 1,
   pageArray: [1, 2, 3, 4, 5, 6, 7],
-  currentSort: 'brandName',
-  currentSortDir: 'asc',
-  sortIndicator: 'fa-sort-up',
+  currentSort: 'modifiedOn',
+  currentSortDir: 'desc',
+  sortIndicator: 'fa-sort-down',
   searchText: '',
   filter: 'active=true',
   selectedItems: [],
@@ -86,6 +86,40 @@ const actions = {
     }
     //}
   },
+  async deleteSelectedItems({ commit, state, dispatch }) {
+    let i = 0
+    try {
+      // Change records to active / inactive
+      const promises = state.selectedItems.map(async itemId => {
+        // Delete item from database
+        dispatch('dataLoadingSet', true)
+        await BrandService.deleteItem(itemId)
+        // Delete item from items list
+        commit('ITEM_REMOVE', itemId)
+        commit('TOTAL_ROWS_SET', state.totalRows - 1)
+        i++
+        return
+      })
+      await Promise.all(promises)
+      dispatch('dataLoadingSet', false)
+      // Success: Tell user
+      const msg = `Successfully deleted ${i >= 200 ? 'maximum of 200' : i} ${
+        i > 1 ? 'records' : 'record'
+      }`
+      dispatch('Notification/toastMsgAdd', msg, {
+        root: true
+      })
+      // Update state
+      commit('SELECTED_ITEMS_CLEAR')
+      i = 0
+    } catch (err) {
+      const msg = `Error delete record: ${err}`
+      dispatch('Notification/toastErrorAdd', msg, {
+        root: true
+      })
+    }
+    i = 0
+  },
   async fetchItems({ commit, state, dispatch }, force = false) {
     // See if we already have this page in the store and use it, avoiding api call
     if (force) {
@@ -105,15 +139,16 @@ const actions = {
           state.filter
         )
         // Success
-        commit('ITEMS_SET', response.data)
-        commit(
-          'TOTAL_ROWS_SET',
-          parseInt(response.headers['x-total-count']) || 0
-        )
-        commit(
-          'TOTAL_PAGES_SET',
-          parseInt(response.headers['x-max-pages']) || 0
-        )
+        // Check for results
+        const totalRows = parseInt(response.headers['x-total-count']) || 0
+        const totalPages = parseInt(response.headers['x-max-pages']) || 0
+
+        commit('ITEMS_SET', totalRows > 0 ? response.data : [])
+        console.log('fetchItems', response)
+        const last = `Last refreshed: ${new Date().toLocaleString()}`
+        commit('ITEMS_SET_LAST', last)
+        commit('TOTAL_ROWS_SET', totalRows)
+        commit('TOTAL_PAGES_SET', totalPages)
         // Set this to avoid api call when coming back to this page
         commit('PAGE_IN_STORE_SET', currPage)
         dispatch('dataLoadingSet', false)
@@ -138,48 +173,53 @@ const actions = {
   itemAdd({ commit }, item) {
     commit('ITEM_ADD', item)
   },
-  itemCreate({ commit }, item) {
+  async itemCreate({ commit, dispatch }, item) {
     // Save to database
-    commit('DATA_LOADING_SET', true)
-    return BrandService.createBrand(item)
-      .then(() => {
-        // Call mutation after successful save
-        console.log('saved successfully', item)
-        commit('ITEM_ADD', item)
-        const msg = `Successfully added brand ${item.brandName} to database`
-        toast(msg, 'success')
-        commit('DATA_LOADING_SET', false)
-      })
-      .catch(error => {
-        const msg = `There was a problem creating your brand: ${error.message}`
-        toast(msg, 'error')
-        commit('DATA_LOADING_SET', false)
-        throw error
-      })
+    try {
+      commit('DATA_LOADING_SET', true)
+      const response = await BrandService.createBrand(item)
+      // Call mutation after successful save
+      commit('ITEM_ADD', item)
+      const msg = `Successfully added brand ${item.brandName}`
+      dispatch('Notification/toastMsgAdd', msg, { root: true })
+      commit('DATA_LOADING_SET', false)
+      return response
+    } catch (error) {
+      // HTTP error: Alert
+      const msg =
+        error.message === 'Unknown network error' && error.statusCode !== ''
+          ? `${error.message} (${error.statusCode})`
+          : error.message
+      commit('DATA_LOADING_SET', false)
+      dispatch('Notification/alertErrorAdd', msg, { root: true })
+      throw error
+    }
   },
   itemEdit({ commit }, item) {
     commit('ITEM_EDIT', item)
   },
-  async itemSave({ commit }, { item, postToast }) {
+  async itemSave({ commit, dispatch }, { item, postToast }) {
     // Save item to database
     commit('DATA_LOADING_SET', true)
-
-    return await BrandService.saveBrand(item)
-      .then(() => {
-        // Call mutation after successful save
-        commit('ITEM_EDIT', item)
-        if (postToast) {
-          const msg = `Successfully saved brand ${item.brandName}`
-          toast(msg, 'success')
-        }
-        commit('DATA_LOADING_SET', false)
-      })
-      .catch(error => {
-        const msg = `There was a problem saving brand: ${error.message}`
-        toast(msg, 'error')
-        commit('DATA_LOADING_SET', false)
-        throw error
-      })
+    try {
+      const response = await BrandService.saveBrand(item)
+      // Call mutation after successful save
+      commit('ITEM_EDIT', item)
+      if (postToast) {
+        const msg = `Successfully saved brand ${item.brandName}`
+        dispatch('Notification/toastMsgAdd', msg, { root: true })
+      }
+      commit('DATA_LOADING_SET', false)
+      return response
+    } catch (error) {
+      const msg =
+        error.message === 'Unknown network error' && error.statusCode !== ''
+          ? `${error.message} (${error.statusCode})`
+          : error.message
+      commit('DATA_LOADING_SET', false)
+      dispatch('Notification/alertErrorAdd', msg, { root: true })
+      throw error
+    }
   },
   itemSet({ commit }, item) {
     commit('ITEM_SET', item)
@@ -200,6 +240,9 @@ const actions = {
     dispatch('fetchItems', true)
   },
   selectedItemsAdd({ commit }, id) {
+    commit('SELECTED_ITEMS_ADD', id)
+  },
+  selectedItemsClear({ commit }, id) {
     commit('SELECTED_ITEMS_ADD', id)
   },
   selectedItemsRemove({ commit }, index) {
@@ -268,14 +311,18 @@ const mutations = {
     var oldItem = state.items.find(x => x.id === payload.id)
     Object.assign(oldItem, payload)
   },
-  ITEM_REMOVE(state, itemToRemove) {
-    state.items = state.items.filter(item => item.id !== itemToRemove.id)
+  ITEM_REMOVE(state, idToRemove) {
+    state.items = state.items.filter(item => item.id !== idToRemove)
   },
   ITEM_SET(state, item) {
     state.item = item
   },
   ITEMS_SET(state, items) {
+    console.log('items_set', items)
     state.items = items
+  },
+  ITEMS_SET_LAST(state, value) {
+    state.itemsLastRefreshed = value
   },
   PAGE_ARRAY_SET(state, value) {
     state.pageArray = value
@@ -298,6 +345,9 @@ const mutations = {
   },
   SELECTED_ITEMS_ADD(state, id) {
     state.selectedItems.push(id)
+  },
+  SELECTED_ITEMS_CLEAR(state) {
+    state.selectedItems = []
   },
   SELECTED_ITEMS_REMOVE_ID(state, index) {
     state.selectedItems.splice(index, 1)

@@ -1,5 +1,5 @@
 module.exports = {
   maxTablePages: 7,
-  autoListRefreshIntervalMin: 10,
+  autoListRefreshIntervalMin: 5,
   fetchDetailItemFromDb: false
 }

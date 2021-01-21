@@ -16,10 +16,26 @@ apiClient.interceptors.request.use(config => {
 })
 
 // before a response is returned stop nprogress
-apiClient.interceptors.response.use(response => {
-  //NProgress.done()
-  return response
-})
+apiClient.interceptors.response.use(
+  response => {
+    //NProgress.done()
+    return response
+  },
+  error => {
+    const resError = {
+      // Handle error
+      statusCode: (error && error.response && error.response.status) || '',
+      message:
+        (error &&
+          error.response &&
+          error.response.data &&
+          error.response.data.errors &&
+          error.response.data.errors[0].msg) ||
+        'Unknown network error'
+    }
+    return Promise.reject(resError)
+  }
+)
 
 export default {
   // Retrieve records optionally using search text or filter
@@ -45,12 +61,8 @@ export default {
 
   // Create a single record
   async createBrand(payload) {
-    try {
-      const newItem = await apiClient.post('/brands', payload)
-      return newItem
-    } catch (err) {
-      console.error(`Error creating record: ${err}`)
-    }
+    const newItem = await apiClient.post('/brands', payload)
+    return newItem
   },
   // Save a single record
   async saveBrand(payload) {
@@ -61,12 +73,12 @@ export default {
       console.error(`Error saving record: ${err}`)
     }
   },
-  // Create a single record
-  async deleteBrand(id) {
+  // Delete a single record
+  async deleteItem(id) {
     try {
       await apiClient.delete(`/brands/${id}`)
     } catch (err) {
-      console.error(`Error creating record: ${err}`)
+      console.error(`Error deleting record: ${err}`)
     }
   }
 }

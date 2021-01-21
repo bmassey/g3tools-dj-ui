@@ -6,7 +6,6 @@
         v-model="localPageSize"
         name="rowsPerPage"
         class="d-inline-block custom-select mr-3"
-        :disabled="state.dataLoading"
         style="width: auto"
         @change="pageSizeSet"
       >
@@ -21,10 +20,7 @@
     <nav v-show="state.totalPages > 1" aria-label="Table pagination">
       <ul class="pagination justify-content-end">
         <!-- First page button -->
-        <li
-          class="page-item"
-          :class="{ disabled: page === 1 || state.dataLoading }"
-        >
+        <li class="page-item" :class="{ disabled: page === 1 }">
           <router-link
             class="page-link"
             :to="{ name: routeName, query: { page: 1 } }"
@@ -34,10 +30,7 @@
           >
         </li>
         <!-- Previous page button -->
-        <li
-          class="page-item prev-page"
-          :class="{ disabled: page === 1 || state.dataLoading }"
-        >
+        <li class="page-item prev-page" :class="{ disabled: page === 1 }">
           <router-link
             class="page-link"
             :to="{ name: routeName, query: { page: page - 1 } }"
@@ -51,12 +44,9 @@
           v-for="(usePage, index) in pageArray"
           :key="index"
           class="page-item"
-          :class="[
-            {
-              active: page === usePage
-            },
-            { disabled: state.dataLoading && page !== usePage }
-          ]"
+          :class="{
+            active: page === usePage
+          }"
         >
           <router-link
             class="page-link"
@@ -69,12 +59,7 @@
         <!-- Max page -->
         <template v-if="showMaxPage">
           <p class="elipsis">...</p>
-          <li
-            class="page-item"
-            :class="{
-              disabled: page === state.totalPages || state.dataLoading
-            }"
-          >
+          <li class="page-item">
             <router-link
               class="page-link"
               :to="{ name: routeName, query: { page: state.totalPages } }"
@@ -87,9 +72,7 @@
         <!-- Next page button -->
         <li
           class="page-item next-page"
-          :class="{
-            disabled: page === state.totalPages || state.dataLoading
-          }"
+          :class="{ disabled: page === state.totalPages }"
         >
           <router-link
             class="page-link"
@@ -100,10 +83,7 @@
           >
         </li>
         <!-- Last page button -->
-        <li
-          class="page-item"
-          :class="{ disabled: page === state.totalPages || state.dataLoading }"
-        >
+        <li class="page-item" :class="{ disabled: page === state.totalPages }">
           <router-link
             class="page-link"
             :to="{ name: routeName, query: { page: state.totalPages } }"

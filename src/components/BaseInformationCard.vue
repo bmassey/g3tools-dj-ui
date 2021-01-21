@@ -7,7 +7,12 @@
           >Information</b-button
         >
       </b-card-header>
-      <b-collapse id="info-1" accordion="info-accordion" role="tabpanel">
+      <b-collapse
+        visible
+        id="info-1"
+        accordion="info-accordion"
+        role="tabpanel"
+      >
         <b-card-body>
           <b-card-text>
             <div class="row">
@@ -42,22 +47,22 @@
 </template>
 
 <script>
-import dateUtils from "../utils/dateUtils.js";
+import dateUtils from '../utils/dateUtils.js'
 
 export default {
-  name: "BaseInformationCard",
+  name: 'BaseInformationCard',
   props: { info: { type: Object, default: null } },
   data() {
     return {
       //      recordId: this.item.id || "",
-    };
+    }
   },
   methods: {
     formatDate: function (rawDate) {
-      return dateUtils.formatDate(rawDate);
-    },
-  },
-};
+      return dateUtils.formatDate(rawDate)
+    }
+  }
+}
 </script>
 
 <style lang="css" scoped>

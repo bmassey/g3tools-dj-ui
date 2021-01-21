@@ -10,7 +10,7 @@ export default new Vuex.Store({
   actions: {
     reset({ commit }) {
       // Resets state of all the modules
-      Object.keys(modules).forEAch(moduleName => {
+      Object.keys(modules).forEach(moduleName => {
         commit(`${moduleName}/RESET`)
       })
     }

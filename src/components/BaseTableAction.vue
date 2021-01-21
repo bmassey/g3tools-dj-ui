@@ -11,28 +11,12 @@
     <!-- Refresh -->
     <b-button
       class="b-button refresh-button"
-      title="Refresh the list"
+      :title="refreshTooltip"
       @click.prevent="refresh"
     >
       <i class="fas fa-sync-alt refresh-icon"></i>
     </b-button>
-    <!-- Delete -->
-    <b-button
-      class="b-button"
-      style="margin-right: 5px"
-      title="Delete selected rows"
-      :disabled="selectedCount === 0"
-      @click.prevent="$emit('action-delete')"
-    >
-      <i class="fas fa-trash delete-icon"></i>
-    </b-button>
-    <!-- Spinner by refresh button -->
-    <b-spinner
-      class="loading-spinner"
-      v-if="state.dataLoading"
-      variant="primary"
-      type="grow"
-    ></b-spinner>
+    <BaseHeadingOtherAction :namespace="namespace" />
   </div>
 </template>
 
@@ -47,6 +31,9 @@ export default {
     },
     selectedCount() {
       return this.state.selectedItems.length
+    },
+    refreshTooltip() {
+      return `Refresh list (${this.state.itemsLastRefreshed})`
     }
   },
   methods: {

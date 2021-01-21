@@ -59,7 +59,7 @@ export default {
 
 <style lang="css" scoped>
 .searchbox {
-  width: 250px;
+  width: 255px;
 }
 .search-cancel {
   margin-left: -80px;
@@ -67,6 +67,8 @@ export default {
 }
 .search-accept {
   z-index: 100;
+  margin-bottom: 2px;
+  margin-left: 2px;
 }
 .fa-times {
   color: grey;

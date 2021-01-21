@@ -95,11 +95,7 @@ export default {
   },
   methods: {
     autoRefresh: async function () {
-      const saveForce = this.force
-      this.force = true
-      await this.$store.dispatch('Brand/fetchItems', this.force)
-      this.force = saveForce
-      console.log('autorefresh', new Date().toLocaleString())
+      await this.$store.dispatch('Brand/fetchItems', true)
     },
     fetchData: async function () {
       if (this.force) {

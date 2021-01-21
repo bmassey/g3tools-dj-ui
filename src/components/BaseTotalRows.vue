@@ -8,9 +8,9 @@
       >Showing <strong>{{ useShowing }}</strong> of
       <strong>{{ state.totalRows }}</strong> rows</label
     >
-    <label v-show="state.selectedItems > 0" class="ml-3 text-secondary">
+    <label v-show="state.selectedItems.length > 0" class="ml-3 text-secondary">
       <i
-        ><strong>{{ state.selectedItems }}</strong> selected</i
+        ><strong>{{ state.selectedItems.length }}</strong> selected</i
       >
     </label>
   </div>
