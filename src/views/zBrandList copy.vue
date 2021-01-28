@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import EntityService from '../services/EntityService'
+// import _ from 'lodash'
 import Vue from 'vue'
 import VueToast from 'vue-toast-notification'
 // Import one of the available themes
@@ -21,12 +23,11 @@ export default {
   },
   data() {
     return {
-      namespace: 'Brand',
+      namespace: 'Entity',
       entity: 'brand',
-      // labelField: 'brandName',
-      // title: 'Brand List',
-      // subTitle:
-      //   'Use this to maintain a list of brands, including a unique prefix, used in brand numbers.',
+      title: 'Brand List',
+      subTitle:
+        'Use this to maintain a list of brands, including a unique prefix, used in brand numbers.',
       sort: 'modifiedOn',
       selectedItem: {},
       showItem: false,
@@ -102,13 +103,12 @@ export default {
   },
   async created() {
     // Set store state
-    // this.$store.dispatch('Brand/entitySet', this.entity)
-    // this.$store.dispatch('Brand/labelFieldSet', this.labelField)
-    // this.$store.dispatch('Brand/titleSet', this.title)
-    // this.$store.dispatch('Brand/subTitleSet', this.subTitle)
+    this.$store.dispatch('Entity/entitySet', this.entity)
+    this.$store.dispatch('Entity/titleSet', this.title)
+    this.$store.dispatch('Entity/subTitleSet', this.subTitle)
     // Set entity store values specific to Brands
     this.$store.dispatch(
-      'Brand/activeFilterButtonsSet',
+      'Entity/activeFilterButtonsSet',
       this.activeFilterButtons
     )
 
@@ -126,16 +126,63 @@ export default {
   },
   methods: {
     autoRefresh: async function () {
-      await this.$store.dispatch('Brand/fetchItems', true)
+      await this.$store.dispatch('Entity/fetchItems', true)
     },
     fetchData: async function () {
       if (this.force) {
-        this.$store.dispatch('Brand/sortSet', {
+        this.$store.dispatch('Entity/sortSet', {
           currentSort: this.sort,
           currentSortDir: 'desc'
         })
       }
-      await this.$store.dispatch('Brand/fetchItems', this.force)
+      await this.$store.dispatch('Entity/fetchItems', this.force)
+    },
+    addBrand: function () {
+      this.$router.push({
+        name: 'brand-item',
+        params: {
+          item: 'new'
+        }
+      })
+    },
+    closeItemDetail: async function (detailItem) {
+      try {
+        this.showItem = false
+        if (detailItem === 'cancel') return null
+        // If detailItem is found in list, update it
+        // Otherwise, add to first of data items array
+        if (detailItem.id === '') {
+          // Save new item to db and add to data array
+          this.$store.dispatch('Entity/dataLoadingSet', true)
+          await EntityService.createItem(detailItem)
+          // utils.upsertArray(this.data, newItem);
+          // Sort by createdOn desc
+          this.currentSort = 'modifiedOn'
+          this.currentSortDir = 'asc'
+          this.sort('modifiedOn')
+          // Toast: New item added
+          const msg = `Successfully added brand ${detailItem.brandName} to database`
+          Vue.$toast.open({
+            message: msg,
+            type: 'success',
+            duration: 5000
+          })
+        } else {
+          // Update existing
+          await EntityService.saveItem(detailItem)
+          const msg = `Successfully updated brand ${detailItem.brandName} to database`
+          Vue.$toast.open({
+            message: msg,
+            type: 'success',
+            duration: 5000
+          })
+          // utils.upsertArray(this.data, detailItem);
+        }
+      } catch (err) {
+        console.error(`Error closing Item Detail record: `, err)
+      } finally {
+        this.$store.dispatch('Entity/dataLoadingSet', false)
+      }
     }
   }
 }

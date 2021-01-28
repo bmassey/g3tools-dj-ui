@@ -27,46 +27,54 @@
           <template>
             <div class="row">
               <div class="" :class="mode === 'new' ? 'col-sm-12' : 'col-sm-6'">
-                <!-- Brand Name -->
+                <!-- Item Number -->
+                <BaseFormInput
+                  id="item-number"
+                  label="Item number:"
+                  v-model="form.itemNumber"
+                  description="Enter an existing item number"
+                  autofocus
+                  :error="$v.form.itemNumber.$error"
+                  errorMsg="Item number is required and must exist in item master"
+                  :state="validateState('itemNumber')"
+                  @blur="$v.form.itemNumber.$touch()"
+                />
+                <!-- Brand name -->
                 <BaseFormInput
                   id="brand-name"
                   label="Brand name:"
                   v-model="form.brandName"
-                  description="Enter a unique brand name"
-                  autofocus
+                  description="Enter an existing brand name"
                   :error="$v.form.brandName.$error"
-                  errorMsg="Brand name is required and must be unique"
+                  errorMsg="Brand name is required"
                   :state="validateState('brandName')"
                   @blur="$v.form.brandName.$touch()"
-                  @keyup="defaultVendor"
                 />
-                <!-- Brand prefix -->
+                <!-- Item description -->
                 <BaseFormInput
-                  id="prefix"
-                  label="Prefix:"
-                  v-model="form.abbreviation"
-                  :uppercase="true"
-                  description="Enter a unique, three-character prefix"
-                  :error="$v.form.abbreviation.$error"
-                  errorMsg="A unique, three-character prefix is required"
-                  :state="validateState('abbreviation')"
-                  @blur="$v.form.abbreviation.$touch()"
+                  id="description"
+                  label="Description:"
+                  v-model="form.productDescription"
+                  description="Enter item description (optional)"
+                  :error="false"
+                  errorMsg=""
+                  :state="null"
                 />
-                <!-- Brand vendor -->
+                <!-- Restricted Reason -->
                 <BaseFormInput
-                  id="vendor"
-                  label="Vendor:"
-                  v-model="form.vendorName"
-                  description="Enter this brand's vendor"
-                  :error="$v.form.vendorName.$error"
-                  errorMsg="Vendor is required"
-                  :state="validateState('vendorName')"
-                  @blur="$v.form.vendorName.$touch()"
+                  id="restricted-reason"
+                  label="Reason:"
+                  v-model="form.restrictedReason"
+                  description="Enter the reason for restriction"
+                  :error="$v.form.restrictedReason.$error"
+                  errorMsg="Restricted reason is required"
+                  :state="validateState('restrictedReason')"
+                  @blur="$v.form.restrictedReason.$touch()"
                 />
-                <!-- Active -->
+                <!-- Enabled -->
                 <b-form-group id="cb-group-active" label-for="cb-active">
                   <b-form-checkbox
-                    v-model="form.active"
+                    v-model="form.enabled"
                     name="cb-active"
                     switch
                   >
@@ -80,12 +88,12 @@
                 <BaseHistoryCard :item="form" />
               </div>
             </div>
-            <!-- Description/Notes -->
+            <!-- Notes -->
             <BaseFormTextarea
-              id="description"
-              label="Description:"
-              v-model="form.description"
-              description="Enter description or notes (shift-enter for new line)."
+              id="notes"
+              label="Notes:"
+              v-model="form.notes"
+              description="Enter notes (shift-enter for new line)."
               :error="false"
               errorMsg=""
               :state="null"
@@ -110,16 +118,14 @@
 
 <script>
 import config from '../../config'
-import { required, maxLength } from 'vuelidate/lib/validators'
+import { required } from 'vuelidate/lib/validators'
 
 export default {
-  components: {
-    // PulseLoader
-  },
-  name: 'BrandItem',
+  components: {},
+  name: 'RestrictedItem',
   props: {
     id: { default: -1 },
-    namespace: { type: String, default: 'Brand' },
+    namespace: { type: String, default: 'Restricted' },
     mode: { type: String, default: 'new' }
   },
   data() {
@@ -129,9 +135,9 @@ export default {
   },
   validations: {
     form: {
+      itemNumber: { required },
       brandName: { required },
-      abbreviation: { required, maxLength: maxLength(3) },
-      vendorName: { required }
+      restrictedReason: { required }
     }
   },
   async created() {
@@ -159,9 +165,6 @@ export default {
   //   }
   // },
   methods: {
-    defaultVendor() {
-      this.form.vendorName = this.form.brandName
-    },
     validateState(name) {
       const { $dirty, $error } = this.$v.form[name]
       return $dirty ? !$error : null
@@ -169,32 +172,28 @@ export default {
 
     createFreshForm() {
       return {
-        brandName: '',
-        abbreviation: '',
-        vendorName: '',
-        active: true,
-        description: '',
         id: '',
-        createdOn: '',
-        createdBy: '',
-        modifiedOn: '',
-        modifiedBy: '',
-        test: '',
-        test2: ''
+        brandName: '',
+        itemNumber: '',
+        productDescription: '',
+        restrictedReason: '',
+        notes: '',
+        enabled: true,
+        insertDate: '',
+        ts: ''
       }
     },
     setFormFromStore() {
       return {
-        brandName: this.state.item.brandName,
-        abbreviation: this.state.item.abbreviation,
-        vendorName: this.state.item.vendorName,
-        active: this.state.item.active,
-        description: this.state.item.description,
         id: this.state.item.id,
-        createdOn: this.state.item.createdOn,
-        createdBy: this.state.item.createdBy,
-        modifiedOn: this.state.item.modifiedOn,
-        modifiedBy: this.state.item.modifiedBy
+        brandName: this.state.item.brandName,
+        itemNumber: this.state.item.itemNumber,
+        productDescription: this.state.item.productDescription,
+        restrictedReason: this.state.item.restrictedReason,
+        notes: this.state.item.notes,
+        enabled: this.state.item.enabled,
+        insertDate: this.state.item.insertDate,
+        ts: this.state.item.ts
       }
     },
     async onSubmit() {
@@ -224,8 +223,8 @@ export default {
           }
           // Route back to list
           this.$router.push({
-            name: 'brand-list',
-            params: { force: force, sort: 'modifiedOn' }
+            name: 'restricted-list',
+            params: { force: force, sort: 'ts' }
           })
         } catch (error) {
           console.log(error)
@@ -235,7 +234,7 @@ export default {
     onCancel() {
       // Push to list so we don't refresh
       this.$router.push({
-        name: 'brand-list',
+        name: 'restricted-list',
         params: { force: false }
       })
     }

@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import RestrictedList from '../views/RestrictedList.vue'
+import RestrictedItem from '@/views/RestrictedItem.vue'
 import BrandList from '../views/BrandList.vue'
 import BrandItem from '@/views/BrandItem.vue'
 import ItemMasterList from '../views/ItemMasterList.vue'
@@ -22,7 +23,14 @@ const routes = [
   {
     path: '/restricted-list',
     name: 'restricted-list',
-    component: RestrictedList
+    component: RestrictedList,
+    props: true
+  },
+  {
+    path: '/restricted-item/:id',
+    name: 'restricted-item',
+    component: RestrictedItem,
+    props: true
   },
   {
     path: '/brand-list',

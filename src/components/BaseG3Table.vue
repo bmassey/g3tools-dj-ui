@@ -14,7 +14,13 @@
           @action-add="showItemDetail('new')"
         />
       </div>
-
+      <!-- No results found text -->
+      <div
+        v-if="state.totalRows === 0 && !state.dataLoading"
+        class="centered empty-text"
+      >
+        {{ emptyText }}
+      </div>
       <table
         class="table table-hover table-sm table-sortable table-bordered table-striped fixed_header"
         style="width: 100%"
@@ -133,6 +139,7 @@ export default {
   components: {},
   props: {
     namespace: { type: String, default: '' },
+    emptyText: { type: String, default: 'No results found' },
     columns: {
       type: Array,
       default() {
@@ -211,8 +218,9 @@ export default {
     showItemDetail: function (item) {
       if (item === 'new') {
         // new item
+        console.log('showItemDetail', this.namespace)
         this.$router.push({
-          name: 'brand-item',
+          name: `${this.namespace.toLowerCase()}-item`,
           params: {
             id: -1,
             mode: 'new'
@@ -223,7 +231,7 @@ export default {
         this.$store.dispatch(`${this.namespace}/itemSet`, item)
         // Route to item detail
         this.$router.push({
-          name: 'brand-item',
+          name: `${this.namespace.toLowerCase()}-item`,
           params: {
             id: parseInt(item.id),
             mode: 'update'
@@ -331,5 +339,10 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+.empty-text {
+  height: 400px;
+  font-weight: bold;
+  color: #656565;
 }
 </style>

@@ -4,10 +4,10 @@ import _ from 'lodash'
 
 // Initial state
 const inititalState = () => ({
-  entity: 'brand',
-  title: 'Brand List',
-  subTitle:
-    'Use this to maintain a list of brands, including a unique prefix, used in brand numbers.',
+  entity: '',
+  labelField: '',
+  title: '',
+  subTitle: '',
   dataLoading: false,
   items: [],
   itemsLastRefreshed: '',
@@ -17,11 +17,11 @@ const inititalState = () => ({
   pageInStore: 0,
   totalPages: 1,
   pageArray: [1, 2, 3, 4, 5, 6, 7],
-  currentSort: 'modifiedOn',
+  currentSort: 'ts',
   currentSortDir: 'desc',
   sortIndicator: 'fa-sort-down',
   searchText: '',
-  filter: 'active=true',
+  filter: 'enabled=true',
   selectedItems: [],
   activeFilterButtons: []
 })
@@ -69,7 +69,7 @@ const actions = {
       const promises = state.selectedItems.map(async itemId => {
         // Delete item from database
         dispatch('dataLoadingSet', true)
-        await EntityService.deleteItem(state.entity, itemId)
+        await EntityService.deleteItem(itemId)
         // Delete item from items list
         commit('ITEM_REMOVE', itemId)
         commit('TOTAL_ROWS_SET', state.totalRows - 1)
@@ -102,8 +102,8 @@ const actions = {
   async fetchItems({ commit, state, dispatch }, force = false) {
     // See if we already have this page in the store and use it, avoiding api call
     if (force) {
-      if (router.history.current.path !== '/brand-list')
-        router.push({ path: `/brand-list` })
+      if (router.history.current.path !== `/${state.entity}-list`)
+        router.push({ path: `/${state.entity}-list` })
     }
     const currPage = router.history.current.query.page || 1
     if (currPage !== state.pageInStore || force) {
@@ -132,7 +132,7 @@ const actions = {
         commit('PAGE_IN_STORE_SET', currPage)
         dispatch('dataLoadingSet', false)
       } catch (error) {
-        console.log('There was an error retrieving brands:', error)
+        console.log(`There was an error retrieving ${state.entity}s:`, error)
         dispatch('dataLoadingSet', false)
       }
     }
@@ -146,14 +146,14 @@ const actions = {
   itemAdd({ commit }, item) {
     commit('ITEM_ADD', item)
   },
-  async itemCreate({ commit, dispatch, state }, item) {
+  async itemCreate({ commit, state, dispatch }, item) {
     // Save to database
     try {
       commit('DATA_LOADING_SET', true)
-      const response = await EntityService.createItem(state.entity, item)
+      const response = await EntityService.createItem(item)
       // Call mutation after successful save
       commit('ITEM_ADD', item)
-      const msg = `Successfully added brand ${item.brandName}`
+      const msg = `Successfully added ${this.entity} ${item[state.labelField]}`
       dispatch('Notification/toastMsgAdd', msg, { root: true })
       commit('DATA_LOADING_SET', false)
       return response
@@ -171,15 +171,17 @@ const actions = {
   itemEdit({ commit }, item) {
     commit('ITEM_EDIT', item)
   },
-  async itemSave({ commit, dispatch, state }, { item, postToast }) {
+  async itemSave({ commit, state, dispatch }, { item, postToast }) {
     // Save item to database
     commit('DATA_LOADING_SET', true)
     try {
-      const response = await EntityService.saveItem(state.entity, item)
+      const response = await EntityService.saveItem(item)
       // Call mutation after successful save
       commit('ITEM_EDIT', item)
       if (postToast) {
-        const msg = `Successfully saved brand ${item.brandName}`
+        const msg = `Successfully saved ${state.entity} ${
+          item[state.labelField]
+        }`
         dispatch('Notification/toastMsgAdd', msg, { root: true })
       }
       commit('DATA_LOADING_SET', false)
@@ -197,6 +199,9 @@ const actions = {
   itemSet({ commit }, item) {
     commit('ITEM_SET', item)
   },
+  labelFieldSet({ commit }, payload) {
+    commit('LABEL_FIELD_SET', payload)
+  },
   pageArraySet({ commit }, value) {
     commit('PAGE_ARRAY_SET', value)
   },
@@ -206,10 +211,6 @@ const actions = {
   },
   reset({ commit }) {
     commit('RESET')
-  },
-  resetFilters({ commit }) {
-    commit('SEARCH_TEXT_SET', '')
-    commit('FILTER_SET', 'active=true')
   },
   search({ commit, dispatch }, searchText) {
     commit('SEARCH_TEXT_SET', searchText)
@@ -311,6 +312,9 @@ const mutations = {
   },
   ITEMS_SET_LAST(state, value) {
     state.itemsLastRefreshed = value
+  },
+  LABEL_FIELD_SET(state, value) {
+    state.labelField = value
   },
   PAGE_ARRAY_SET(state, value) {
     state.pageArray = value

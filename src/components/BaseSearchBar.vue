@@ -1,7 +1,7 @@
 <template>
   <div class="input-group searchbox">
     <input
-      v-model="localSearchText"
+      v-model="searchText"
       type="text"
       class="form-control"
       placeholder="Search..."
@@ -10,7 +10,7 @@
     <!-- Clear search button -->
     <button
       class="btn bg-transparent search-cancel"
-      :class="{ disabled: localSearchText === '' }"
+      :class="{ disabled: searchText === '' }"
       @click="clear"
     >
       <i class="fas fa-times color-secondary"></i>
@@ -19,7 +19,7 @@
     <div class="input-group-append">
       <button
         class="btn btn-secondary search-accept"
-        :class="{ disabled: localSearchText === '' }"
+        :class="{ disabled: searchText === '' }"
         @click="search"
       >
         <i class="fas fa-search"></i>
@@ -29,29 +29,42 @@
 </template>
 
 <script>
+// import utils from '../utils/jsUtils'
+
 export default {
   props: {
     namespace: { type: String, default: '' }
   },
   data() {
-    return {
-      localSearchText: ''
-    }
+    return {}
   },
   computed: {
     state() {
       return this.$store.state[this.namespace]
+    },
+    searchText: {
+      get() {
+        return this.state.searchText
+      },
+      set(value) {
+        this.$store.commit(`${this.namespace}/SEARCH_TEXT_SET`, value)
+      }
     }
+    // ...utils.mapStateTwoWay(this.namespace, {
+    //   searchText: 'SEARCH_TEXT_SET'
+    // })
   },
   methods: {
     search() {
-      if (this.localSearchText === '') return
-      this.$store.dispatch(`${this.namespace}/search`, this.localSearchText)
+      console.log('search', this.searchText)
+      if (this.searchText === '') return
+      this.$store.dispatch(`${this.namespace}/search`, this.searchText)
     },
     clear() {
-      if (this.localSearchText === '') return
-      this.localSearchText = ''
-      this.$store.dispatch(`${this.namespace}/search`, this.localSearchText)
+      console.log('clear', this.searchText)
+      if (this.searchText === '') return
+      this.searchText = ''
+      this.$store.dispatch(`${this.namespace}/search`, this.searchText)
     }
   }
 }

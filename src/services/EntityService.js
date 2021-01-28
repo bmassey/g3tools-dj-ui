@@ -39,7 +39,8 @@ apiClient.interceptors.response.use(
 
 export default {
   // Retrieve records optionally using search text or filter
-  getBrands(
+  getItems(
+    entity = '',
     pageSize = 25,
     currentPage = 1,
     orderBy = '',
@@ -50,33 +51,34 @@ export default {
     let query = `?limit=${pageSize}&page=${currentPage}&orderBy=${orderBy}&orderDir=${orderDir}`
     if (searchText !== '') query = `${query}&searchText=${searchText}`
     if (filter != '') query = `${query}&filter=${filter}`
-    const url = searchText !== '' || filter !== '' ? '/brands/find' : '/brands'
+    const url =
+      searchText !== '' || filter !== '' ? `/${entity}/find` : `/${entity}`
 
     return apiClient.get(`${url}${query}`)
   },
   // Get single record
-  getBrand(id) {
-    return apiClient.get(`/brands/${id}`)
+  getItem(id, entity) {
+    return apiClient.get(`/${entity}/${id}`)
   },
 
   // Create a single record
-  async createBrand(payload) {
-    const newItem = await apiClient.post('/brands', payload)
+  async createItem(entity, payload) {
+    const newItem = await apiClient.post(`/${entity}`, payload)
     return newItem
   },
   // Save a single record
-  async saveBrand(payload) {
+  async saveItem(entity, payload) {
     try {
-      const record = await apiClient.put(`/brands/${payload.id}`, payload)
+      const record = await apiClient.put(`/${entity}/${payload.id}`, payload)
       return record
     } catch (err) {
       console.error(`Error saving record: ${err}`)
     }
   },
   // Delete a single record
-  async deleteItem(id) {
+  async deleteItem(entity, id) {
     try {
-      await apiClient.delete(`/brands/${id}`)
+      await apiClient.delete(`/${entity}/${id}`)
     } catch (err) {
       console.error(`Error deleting record: ${err}`)
     }

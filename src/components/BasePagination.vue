@@ -121,7 +121,8 @@ export default {
       return lastItem < this.state.totalPages
     },
     routeName() {
-      return `${this.namespace.toLowerCase()}-list`
+      const route = `${this.state.entity}-list`
+      return route
     },
     page() {
       const newPage = parseInt(this.$route.query.page) || 1

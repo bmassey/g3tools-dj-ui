@@ -38,6 +38,7 @@ export default {
   },
   methods: {
     refresh() {
+      this.$store.dispatch(`${this.namespace}/resetFilters`)
       this.$store.dispatch(`${this.namespace}/fetchItems`, true)
     }
   }

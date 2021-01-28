@@ -4,10 +4,9 @@ import _ from 'lodash'
 
 // Initial state
 const inititalState = () => ({
-  entity: 'brand',
-  title: 'Brand List',
-  subTitle:
-    'Use this to maintain a list of brands, including a unique prefix, used in brand numbers.',
+  entity: 'restricted',
+  title: 'Restricted List',
+  subTitle: 'List of items restricted (cannot be sold) on Amazon.',
   dataLoading: false,
   items: [],
   itemsLastRefreshed: '',
@@ -17,11 +16,11 @@ const inititalState = () => ({
   pageInStore: 0,
   totalPages: 1,
   pageArray: [1, 2, 3, 4, 5, 6, 7],
-  currentSort: 'modifiedOn',
+  currentSort: 'ts',
   currentSortDir: 'desc',
   sortIndicator: 'fa-sort-down',
   searchText: '',
-  filter: 'active=true',
+  filter: 'enabled=true',
   selectedItems: [],
   activeFilterButtons: []
 })
@@ -102,8 +101,8 @@ const actions = {
   async fetchItems({ commit, state, dispatch }, force = false) {
     // See if we already have this page in the store and use it, avoiding api call
     if (force) {
-      if (router.history.current.path !== '/brand-list')
-        router.push({ path: `/brand-list` })
+      if (router.history.current.path !== '/restricted-list')
+        router.push({ path: `/restricted-list` })
     }
     const currPage = router.history.current.query.page || 1
     if (currPage !== state.pageInStore || force) {
@@ -132,15 +131,15 @@ const actions = {
         commit('PAGE_IN_STORE_SET', currPage)
         dispatch('dataLoadingSet', false)
       } catch (error) {
-        console.log('There was an error retrieving brands:', error)
+        console.log('There was an error retrieving restricted:', error)
         dispatch('dataLoadingSet', false)
       }
     }
   },
   filterActive({ commit, dispatch }, activeOption) {
     commit('FILTER_SET', '')
-    if (activeOption === 'active') commit('FILTER_SET', 'active=true')
-    else if (activeOption === 'inactive') commit('FILTER_SET', 'active=false')
+    if (activeOption === 'active') commit('FILTER_SET', 'enabled=true')
+    else if (activeOption === 'inactive') commit('FILTER_SET', 'enabled=false')
     dispatch('fetchItems', true)
   },
   itemAdd({ commit }, item) {
@@ -153,7 +152,7 @@ const actions = {
       const response = await EntityService.createItem(state.entity, item)
       // Call mutation after successful save
       commit('ITEM_ADD', item)
-      const msg = `Successfully added brand ${item.brandName}`
+      const msg = `Successfully added restricted item ${item.itemNumber}`
       dispatch('Notification/toastMsgAdd', msg, { root: true })
       commit('DATA_LOADING_SET', false)
       return response
@@ -179,7 +178,7 @@ const actions = {
       // Call mutation after successful save
       commit('ITEM_EDIT', item)
       if (postToast) {
-        const msg = `Successfully saved brand ${item.brandName}`
+        const msg = `Successfully saved restricted ${item.itemNumber}`
         dispatch('Notification/toastMsgAdd', msg, { root: true })
       }
       commit('DATA_LOADING_SET', false)
@@ -209,7 +208,7 @@ const actions = {
   },
   resetFilters({ commit }) {
     commit('SEARCH_TEXT_SET', '')
-    commit('FILTER_SET', 'active=true')
+    commit('FILTER_SET', 'enabled=true')
   },
   search({ commit, dispatch }, searchText) {
     commit('SEARCH_TEXT_SET', searchText)
