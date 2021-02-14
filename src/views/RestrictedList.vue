@@ -30,74 +30,7 @@ export default {
       sort: 'ts',
       selectedItem: {},
       showItem: false,
-      timer: '',
-      columns: [
-        {
-          dbName: 'itemNumber',
-          headingName: 'Item Number',
-          sortable: true,
-          headingWidthPct: 21,
-          dataWidthPct: 24,
-          columnType: 'link'
-        },
-        {
-          dbName: 'brandName',
-          headingName: 'Brand Name',
-          sortable: true,
-          headingWidthPct: 18,
-          dataWidthPct: 18,
-          columnType: 'text'
-        },
-        // {
-        //   dbName: 'productDescription',
-        //   headingName: 'Description',
-        //   sortable: true,
-        //   headingWidthPct: 22.5,
-        //   dataWidthPct: 22,
-        //   columnType: 'text'
-        // },
-        {
-          dbName: 'restrictedReason',
-          headingName: 'Reason',
-          sortable: true,
-          headingWidthPct: 20,
-          dataWidthPct: 20,
-          columnType: 'text'
-        },
-        {
-          dbName: 'enabled',
-          headingName: 'Active',
-          sortable: true,
-          headingWidthPct: 10,
-          dataWidthPct: 10,
-          columnType: 'checkbox'
-        },
-        {
-          dbName: 'ts',
-          headingName: 'Last Modified',
-          sortable: true,
-          headingWidthPct: -1, // Omit heading width style
-          dataWidthPct: 20,
-          columnType: 'datetime'
-        }
-      ],
-      activeFilterButtons: [
-        {
-          btnName: 'enabled',
-          btnLabel: 'Active',
-          value: 'active'
-        },
-        {
-          btnName: 'disabled',
-          btnLabel: 'Inactive',
-          value: 'inactive'
-        },
-        {
-          btnName: 'all',
-          btnLabel: 'All',
-          value: 'all'
-        }
-      ]
+      timer: ''
     }
   },
   computed: {
@@ -106,6 +39,9 @@ export default {
     },
     state() {
       return this.$store.state[this.namespace]
+    },
+    columns() {
+      return this.state.columns
     }
   },
   async created() {
@@ -114,7 +50,7 @@ export default {
     // this.$store.dispatch('Restricted/labelFieldSet', this.labelField)
     // this.$store.dispatch('Restricted/titleSet', this.title)
     // this.$store.dispatch('Restricted/subTitleSet', this.subTitle)
-    // Set entity store values specific to Brands
+    // Set entity store values specific to Restricted
     this.$store.dispatch(
       'Restricted/activeFilterButtonsSet',
       this.activeFilterButtons
@@ -144,6 +80,7 @@ export default {
         })
       }
       await this.$store.dispatch('Restricted/fetchItems', this.force)
+      console.log('this.state.optionsBrand', this.state.optionsBrand)
     }
   }
 }

@@ -82,5 +82,16 @@ export default {
     } catch (err) {
       console.error(`Error deleting record: ${err}`)
     }
+  },
+  // Retrieve list based on passed in parameters (used to retrieve
+  // drop down lists). Returns array of option items
+  async getOptionsList(entity = '', endPoint = '', fieldName = '') {
+    const url = `/${entity}/${endPoint}`
+    const results = await apiClient.get(`${url}`)
+    let a = []
+    for (let i = 0; i < results.data.length; i++) {
+      a.push(results.data[i][fieldName])
+    }
+    return a
   }
 }

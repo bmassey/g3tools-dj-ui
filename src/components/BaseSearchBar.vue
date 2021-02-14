@@ -16,15 +16,7 @@
       <i class="fas fa-times color-secondary"></i>
     </button>
     <!-- Search button -->
-    <div class="input-group-append">
-      <button
-        class="btn btn-secondary search-accept"
-        :class="{ disabled: searchText === '' }"
-        @click="search"
-      >
-        <i class="fas fa-search"></i>
-      </button>
-    </div>
+    <BaseSearchButton :searchText="searchText" @search-click="search" />
   </div>
 </template>
 
@@ -56,12 +48,10 @@ export default {
   },
   methods: {
     search() {
-      console.log('search', this.searchText)
       if (this.searchText === '') return
       this.$store.dispatch(`${this.namespace}/search`, this.searchText)
     },
     clear() {
-      console.log('clear', this.searchText)
       if (this.searchText === '') return
       this.searchText = ''
       this.$store.dispatch(`${this.namespace}/search`, this.searchText)

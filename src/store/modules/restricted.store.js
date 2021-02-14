@@ -21,8 +21,80 @@ const inititalState = () => ({
   sortIndicator: 'fa-sort-down',
   searchText: '',
   filter: 'enabled=true',
+  showFilterRow: false,
   selectedItems: [],
-  activeFilterButtons: []
+  columns: [
+    {
+      dbName: 'itemNumber',
+      headingName: 'Item Number',
+      sortable: true,
+      headingWidthPct: 22.75,
+      dataWidthPct: 22.3,
+      columnType: 'link',
+      filterable: true,
+      filterType: 'text'
+    },
+    {
+      dbName: 'brandName',
+      headingName: 'Brand Name',
+      sortable: true,
+      headingWidthPct: 18,
+      dataWidthPct: 18,
+      columnType: 'text',
+      filterable: true,
+      filterType: 'select',
+      filterOptions: []
+    },
+    {
+      dbName: 'restrictedReason',
+      headingName: 'Reason',
+      sortable: true,
+      headingWidthPct: 19.9,
+      dataWidthPct: 19.9,
+      columnType: 'text',
+      filterable: true,
+      filterType: 'select',
+      filterOptions: []
+    },
+    {
+      dbName: 'enabled',
+      headingName: 'Active',
+      sortable: true,
+      headingWidthPct: 9.9,
+      dataWidthPct: 10,
+      columnType: 'checkbox',
+      filterable: false
+    },
+    {
+      dbName: 'ts',
+      headingName: 'Last Modified',
+      sortable: true,
+      headingWidthPct: -1, // Omit heading width style
+      dataWidthPct: 20,
+      columnType: 'datetime',
+      filterable: true,
+      filterType: 'text'
+    }
+  ],
+  activeFilterButtons: [
+    {
+      btnName: 'enabled',
+      btnLabel: 'Active',
+      value: 'active'
+    },
+    {
+      btnName: 'disabled',
+      btnLabel: 'Inactive',
+      value: 'inactive'
+    },
+    {
+      btnName: 'all',
+      btnLabel: 'All',
+      value: 'all'
+    }
+  ],
+  optionsBrand: [],
+  optionsReason: []
 })
 // State object
 const state = inititalState
@@ -130,6 +202,22 @@ const actions = {
         // Set this to avoid api call when coming back to this page
         commit('PAGE_IN_STORE_SET', currPage)
         dispatch('dataLoadingSet', false)
+
+        // Retrieve drop down lists for filters
+        // Brand name
+        const optionsBrand = await EntityService.getOptionsList(
+          state.entity,
+          'brands',
+          'brandName'
+        )
+        commit('OPTIONS_BRAND_SET', optionsBrand)
+        // Restricted Reason
+        const optionsReason = await EntityService.getOptionsList(
+          state.entity,
+          'reasons',
+          'restrictedReason'
+        )
+        commit('OPTIONS_REASON_SET', optionsReason)
       } catch (error) {
         console.log('There was an error retrieving restricted:', error)
         dispatch('dataLoadingSet', false)
@@ -227,6 +315,9 @@ const actions = {
   selectedItemsSet({ commit }, ids) {
     commit('SELECTED_ITEMS_SET', ids)
   },
+  showFilterRowSet({ commit }, value) {
+    commit('SHOW_FILTER_ROW_SET', value)
+  },
   sortSet({ commit }, { currentSort, currentSortDir }) {
     commit('CURRENT_SORT_SET', currentSort)
     commit('CURRENT_SORT_DIR_SET', currentSortDir)
@@ -311,6 +402,16 @@ const mutations = {
   ITEMS_SET_LAST(state, value) {
     state.itemsLastRefreshed = value
   },
+  OPTIONS_BRAND_SET(state, value) {
+    const found = state.columns.find(column => column.dbName == 'brandName')
+    found.filterOptions = value
+  },
+  OPTIONS_REASON_SET(state, value) {
+    const found = state.columns.find(
+      column => column.dbName == 'restrictedReason'
+    )
+    found.filterOptions = value
+  },
   PAGE_ARRAY_SET(state, value) {
     state.pageArray = value
   },
@@ -341,6 +442,9 @@ const mutations = {
   },
   SELECTED_ITEMS_SET(state, ids) {
     state.selectedItems = ids
+  },
+  SHOW_FILTER_ROW_SET(state, value) {
+    state.showFilterRow = value
   },
   SORT_INDICATOR_SET(state, value) {
     state.sortIndicator = value

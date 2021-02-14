@@ -30,66 +30,7 @@ export default {
       sort: 'modifiedOn',
       selectedItem: {},
       showItem: false,
-      timer: '',
-      columns: [
-        {
-          dbName: 'brandName',
-          headingName: 'Brand Name',
-          sortable: true,
-          headingWidthPct: 24.5,
-          dataWidthPct: 25,
-          columnType: 'link'
-        },
-        {
-          dbName: 'abbreviation',
-          headingName: 'Abbrev',
-          sortable: true,
-          headingWidthPct: 10,
-          dataWidthPct: 10,
-          columnType: 'text'
-        },
-        {
-          dbName: 'vendorName',
-          headingName: 'Vendor Name',
-          sortable: true,
-          headingWidthPct: 24.5,
-          dataWidthPct: 25,
-          columnType: 'text'
-        },
-        {
-          dbName: 'active',
-          headingName: 'Active',
-          sortable: true,
-          headingWidthPct: 10,
-          dataWidthPct: 10,
-          columnType: 'checkbox'
-        },
-        {
-          dbName: 'modifiedOn',
-          headingName: 'Last Modified',
-          sortable: true,
-          headingWidthPct: -1, // Omit heading width style
-          dataWidthPct: 20,
-          columnType: 'datetime'
-        }
-      ],
-      activeFilterButtons: [
-        {
-          btnName: 'active',
-          btnLabel: 'Active',
-          value: 'active'
-        },
-        {
-          btnName: 'inactive',
-          btnLabel: 'Inactive',
-          value: 'inactive'
-        },
-        {
-          btnName: 'all',
-          btnLabel: 'All',
-          value: 'all'
-        }
-      ]
+      timer: ''
     }
   },
   computed: {
@@ -98,6 +39,9 @@ export default {
     },
     state() {
       return this.$store.state[this.namespace]
+    },
+    columns() {
+      return this.state.columns
     }
   },
   async created() {

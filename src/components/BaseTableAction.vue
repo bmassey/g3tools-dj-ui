@@ -1,5 +1,16 @@
 <template>
   <div style="display: flex">
+    <!-- Show fitler row -->
+    <b-button
+      class="b-button"
+      title="Add a new record"
+      @click.prevent="$emit('action-filter')"
+    >
+      <i
+        class="fas fa-filter"
+        :class="[state.showFilterRow ? 'filter-icon-active' : 'filter-icon']"
+      ></i>
+    </b-button>
     <!-- Add -->
     <b-button
       class="b-button add-button"
@@ -68,6 +79,16 @@ i:hover {
 }
 .add-icon {
   font-size: 1.6em;
+  color: #007bff;
+  vertical-align: middle;
+}
+.filter-icon {
+  font-size: 1.4em;
+  color: rgb(73, 73, 73);
+  vertical-align: middle;
+}
+.filter-icon-active {
+  font-size: 1.4em;
   color: #007bff;
   vertical-align: middle;
 }

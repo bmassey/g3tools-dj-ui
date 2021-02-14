@@ -22,8 +22,77 @@ const inititalState = () => ({
   sortIndicator: 'fa-sort-down',
   searchText: '',
   filter: 'active=true',
+  showFilterRow: false,
   selectedItems: [],
-  activeFilterButtons: []
+  columns: [
+    {
+      dbName: 'brandName',
+      headingName: 'Brand Name',
+      sortable: true,
+      headingWidthPct: 24.5,
+      dataWidthPct: 25,
+      columnType: 'link',
+      filterable: true,
+      filterType: 'text'
+    },
+    {
+      dbName: 'abbreviation',
+      headingName: 'Abbrev',
+      sortable: true,
+      headingWidthPct: 10,
+      dataWidthPct: 10,
+      columnType: 'text',
+      filterable: true,
+      filterType: 'text'
+    },
+    {
+      dbName: 'vendorName',
+      headingName: 'Vendor Name',
+      sortable: true,
+      headingWidthPct: 24.5,
+      dataWidthPct: 25,
+      columnType: 'text',
+      filterable: true,
+      filterType: 'text'
+    },
+    {
+      dbName: 'active',
+      headingName: 'Active',
+      sortable: true,
+      headingWidthPct: 10,
+      dataWidthPct: 10,
+      columnType: 'checkbox',
+      filterable: false,
+      filterType: 'checkbox'
+    },
+    {
+      dbName: 'modifiedOn',
+      headingName: 'Last Modified',
+      sortable: true,
+      headingWidthPct: -1, // Omit heading width style
+      dataWidthPct: 20,
+      columnType: 'datetime',
+      filterable: true,
+      filterType: 'text'
+    }
+  ],
+  activeFilterButtons: [
+    {
+      btnName: 'active',
+      btnLabel: 'Active',
+      value: 'active'
+    },
+    {
+      btnName: 'inactive',
+      btnLabel: 'Inactive',
+      value: 'inactive'
+    },
+    {
+      btnName: 'all',
+      btnLabel: 'All',
+      value: 'all'
+    }
+  ]
 })
 // State object
 const state = inititalState
@@ -228,6 +297,9 @@ const actions = {
   selectedItemsSet({ commit }, ids) {
     commit('SELECTED_ITEMS_SET', ids)
   },
+  showFilterRowSet({ commit }, value) {
+    commit('SHOW_FILTER_ROW_SET', value)
+  },
   sortSet({ commit }, { currentSort, currentSortDir }) {
     commit('CURRENT_SORT_SET', currentSort)
     commit('CURRENT_SORT_DIR_SET', currentSortDir)
@@ -330,6 +402,9 @@ const mutations = {
   },
   SEARCH_TEXT_SET(state, value) {
     state.searchText = value
+  },
+  SHOW_FILTER_ROW_SET(state, value) {
+    state.showFilterRow = value
   },
   SELECTED_ITEMS_ADD(state, id) {
     state.selectedItems.push(id)

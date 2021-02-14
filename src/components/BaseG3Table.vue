@@ -12,6 +12,7 @@
         <BaseTableAction
           :namespace="namespace"
           @action-add="showItemDetail('new')"
+          @action-filter="showFilterRow()"
         />
       </div>
       <!-- No results found text -->
@@ -22,13 +23,13 @@
         {{ emptyText }}
       </div>
       <table
-        class="table table-hover table-sm table-sortable table-bordered table-striped fixed_header"
+        class="table table-hover table-sm table-sortable table-bordered table-striped fixed-header"
         style="width: 100%"
       >
         <thead class="thead-light text-center">
           <tr>
             <th colspan="2" scope="col" style="width: 10%">
-              <BaseHeadingSelect :namespace="namespace" />
+              <BaseHeadingSelect :namespace="namespace" :columns="columns" />
             </th>
             <!-- Column headings array from props -->
             <template v-for="column in columns">
@@ -51,8 +52,16 @@
               </th>
             </template>
           </tr>
+          <BaseTableFilterRow :namespace="namespace" :columns="columns" />
         </thead>
-        <tbody class="my-tbody">
+        <tbody
+          class="my-tbody"
+          :class="[
+            state.showFilterRow
+              ? 'table-height-filter'
+              : 'table-height-no-filter'
+          ]"
+        >
           <!-- Table data rows -->
           <tr v-for="(item, index) in state.items" :key="item.id">
             <!-- Row select -->
@@ -148,6 +157,11 @@ export default {
     },
     data: []
   },
+  data() {
+    return {
+      tableHeight: '78vh'
+    }
+  },
   computed: {
     state() {
       return this.$store.state[this.namespace]
@@ -215,10 +229,16 @@ export default {
         this.$store.dispatch(`${this.namespace}/selectedItemsAdd`, itemId)
       }
     },
+    showFilterRow: function () {
+      // Set showFilterRow in store
+      this.$store.dispatch(
+        `${this.namespace}/showFilterRowSet`,
+        !this.state.showFilterRow
+      )
+    },
     showItemDetail: function (item) {
       if (item === 'new') {
         // new item
-        console.log('showItemDetail', this.namespace)
         this.$router.push({
           name: `${this.namespace.toLowerCase()}-item`,
           params: {
@@ -270,29 +290,35 @@ export default {
   /* border-left: 0px; */
   border-top: 0px;
 }
-.fixed_header > .container {
+.fixed-header > .container {
   padding-left: 0px;
   padding-right: 0px;
 }
-.fixed_header {
+.fixed-header {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
 }
 
-.fixed_header tbody {
+.fixed-header tbody {
   display: block;
   width: 100%;
   overflow: auto;
-  height: 78vh;
+  /* height: 78vh; */
+}
+.table-height-no-filter {
+  height: 79vh;
+}
+.table-height-filter {
+  height: 75.3vh;
 }
 
-.fixed_header thead tr {
+.fixed-header thead tr {
   display: block;
 }
 
-.fixed_header th,
-.fixed_header td {
+.fixed-header th,
+.fixed-header td {
   padding: 5px;
   width: 900px;
   border-width: 1px;
