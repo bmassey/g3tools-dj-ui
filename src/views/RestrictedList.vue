@@ -45,17 +45,6 @@ export default {
     }
   },
   async created() {
-    // Set store state
-    //this.$store.dispatch('Restricted/entitySet', this.entity)
-    // this.$store.dispatch('Restricted/labelFieldSet', this.labelField)
-    // this.$store.dispatch('Restricted/titleSet', this.title)
-    // this.$store.dispatch('Restricted/subTitleSet', this.subTitle)
-    // Set entity store values specific to Restricted
-    this.$store.dispatch(
-      'Restricted/activeFilterButtonsSet',
-      this.activeFilterButtons
-    )
-
     await this.fetchData()
     this.timer = setInterval(
       await this.autoRefresh,
@@ -80,7 +69,6 @@ export default {
         })
       }
       await this.$store.dispatch('Restricted/fetchItems', this.force)
-      console.log('this.state.optionsBrand', this.state.optionsBrand)
     }
   }
 }

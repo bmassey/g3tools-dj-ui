@@ -28,69 +28,71 @@ const inititalState = () => ({
       dbName: 'itemNumber',
       headingName: 'Item Number',
       sortable: true,
-      headingWidthPct: 22.75,
-      dataWidthPct: 22.3,
       columnType: 'link',
       filterable: true,
-      filterType: 'text'
+      filterType: 'text',
+      filteredValue: ''
     },
     {
       dbName: 'brandName',
       headingName: 'Brand Name',
       sortable: true,
-      headingWidthPct: 18,
-      dataWidthPct: 18,
       columnType: 'text',
       filterable: true,
       filterType: 'select',
-      filterOptions: []
+      filterOptions: [],
+      filteredValue: ''
     },
     {
       dbName: 'restrictedReason',
       headingName: 'Reason',
       sortable: true,
-      headingWidthPct: 19.9,
-      dataWidthPct: 19.9,
       columnType: 'text',
       filterable: true,
       filterType: 'select',
-      filterOptions: []
+      filterOptions: [],
+      filteredValue: ''
     },
     {
       dbName: 'enabled',
       headingName: 'Active',
       sortable: true,
-      headingWidthPct: 9.9,
-      dataWidthPct: 10,
       columnType: 'checkbox',
-      filterable: false
+      filterable: false,
+      filteredValue: ''
     },
     {
       dbName: 'ts',
       headingName: 'Last Modified',
       sortable: true,
-      headingWidthPct: -1, // Omit heading width style
-      dataWidthPct: 20,
       columnType: 'datetime',
       filterable: true,
-      filterType: 'text'
+      filterType: 'text',
+      filteredValue: ''
     }
   ],
-  activeFilterButtons: [
+  actionFilters: [
     {
-      btnName: 'enabled',
-      btnLabel: 'Active',
-      value: 'active'
-    },
-    {
-      btnName: 'disabled',
-      btnLabel: 'Inactive',
-      value: 'inactive'
-    },
-    {
-      btnName: 'all',
-      btnLabel: 'All',
-      value: 'all'
+      dbName: 'enabled',
+      defaultValue: 'active',
+      selectedValue: 'active',
+      buttons: [
+        {
+          btnName: 'enabled',
+          btnLabel: 'Active',
+          value: 'active'
+        },
+        {
+          btnName: 'disabled',
+          btnLabel: 'Inactive',
+          value: 'inactive'
+        },
+        {
+          btnName: 'all',
+          btnLabel: 'All',
+          value: 'all'
+        }
+      ]
     }
   ],
   optionsBrand: [],
@@ -117,9 +119,6 @@ const getters = {
 
 // Actions
 const actions = {
-  activeFilterButtonsSet({ commit }, payload) {
-    commit('ACTIVE_FILTER_BUTTONS_SET', payload)
-  },
   dataLoadingSet({ commit }, isLoading) {
     commit('DATA_LOADING_SET', isLoading)
   },
@@ -180,6 +179,7 @@ const actions = {
     if (currPage !== state.pageInStore || force) {
       try {
         dispatch('dataLoadingSet', true)
+        // Fetch...
         const response = await EntityService.getItems(
           state.entity,
           state.pageSize,
@@ -224,12 +224,59 @@ const actions = {
       }
     }
   },
-  filterActive({ commit, dispatch }, activeOption) {
+  // Combine action filter and row filters and set filter
+  async filterApply({ commit, dispatch }) {
     commit('FILTER_SET', '')
-    if (activeOption === 'active') commit('FILTER_SET', 'enabled=true')
-    else if (activeOption === 'inactive') commit('FILTER_SET', 'enabled=false')
-    dispatch('fetchItems', true)
+    let filter = ''
+    const actionFilter = await dispatch('filterActionParse')
+    const columnFilter = await dispatch('filterColumnRowParse')
+
+    console.log('filterApply-actionFilter', actionFilter)
+    console.log('filterApply-columnFilter', columnFilter)
+    // Combine filters
+    if (actionFilter !== '' && columnFilter !== '')
+      filter = `${actionFilter} AND ${columnFilter}`
+    else if (actionFilter !== '' && columnFilter === '') filter = actionFilter
+    else if (actionFilter === '' && columnFilter !== '') filter = columnFilter
+
+    commit('FILTER_SET', filter)
+    console.log('filterApply-filter', filter)
   },
+
+  // Create action filter
+  filterActionParse({ state }) {
+    // For all action button groups, create filter predicate
+    let actionFilter = ''
+    // Active filter
+    const activeFilter = state.actionFilters.find(x => x.dbName === 'enabled')
+    if (activeFilter.selectedValue !== 'all') {
+      if (activeFilter.selectedValue === 'active') {
+        actionFilter = 'enabled=true'
+      } else {
+        actionFilter = 'enabled=false'
+      }
+    }
+    // ... If additional action filters are added, put them here
+    return actionFilter
+  },
+
+  // Apply filter for each column in filter row
+  async filterColumnRowParse({ state }) {
+    // Build filter predicates
+    let filters = ''
+    await state.columns.map(col => {
+      if (col.filteredValue !== '') {
+        if (filters !== '') filters += ' AND '
+        const argument = `\`${
+          col.dbName
+        }\` LIKE '%${col.filteredValue.trim()}%'`
+        filters += argument
+      }
+    })
+    return filters
+  },
+
+  // Add individual item
   itemAdd({ commit }, item) {
     commit('ITEM_ADD', item)
   },
@@ -294,9 +341,20 @@ const actions = {
   reset({ commit }) {
     commit('RESET')
   },
-  resetFilters({ commit }) {
+  resetFilters({ commit, state }) {
+    // Action filters
+    commit('ACTION_FILTER_SELECTED', {
+      fieldName: 'enabled',
+      fieldValue: 'active'
+    })
+    // Column filters
+    state.columns.map(col => {
+      commit('COLUMN_FILTERED_VALUE_SET', {
+        fieldName: col.dbName,
+        fieldValue: ''
+      })
+    })
     commit('SEARCH_TEXT_SET', '')
-    commit('FILTER_SET', 'enabled=true')
   },
   search({ commit, dispatch }, searchText) {
     commit('SEARCH_TEXT_SET', searchText)
@@ -367,6 +425,23 @@ const mutations = {
   ACTIVE_FILTER_BUTTONS_SET(state, value) {
     state.activeFilterButtons = value
   },
+  ACTIVE_FILTER_SELECTED(state, value) {
+    state.activeFilterSelected = value
+  },
+  ACTION_FILTER_SELECTED(state, payload) {
+    // Find action filter button group
+    var foundGroup = state.actionFilters.find(
+      x => x.dbName === payload.fieldName
+    )
+    // Set selected value of action filter
+    foundGroup.selectedValue = payload.fieldValue
+  },
+  COLUMN_FILTERED_VALUE_SET(state, payload) {
+    // Find column
+    var findColumn = state.columns.find(x => x.dbName === payload.fieldName)
+    // Set filtered value
+    findColumn.filteredValue = payload.fieldValue
+  },
   CURRENT_SORT_SET(state, value) {
     state.currentSort = value
   },
@@ -423,7 +498,8 @@ const mutations = {
     state.pageSize = pageSize
   },
   RESET(state) {
-    const newState = state.initialState()
+    console.log('RESET-state.initialState', this.initialState())
+    const newState = state.initialState
     Object.keys(newState).forEach(key => {
       state[key] = newState[key]
     })

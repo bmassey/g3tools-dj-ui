@@ -46,9 +46,6 @@ const getters = {
 
 // Actions
 const actions = {
-  activeFilterButtonsSet({ commit }, payload) {
-    commit('ACTIVE_FILTER_BUTTONS_SET', payload)
-  },
   dataLoadingSet({ commit }, isLoading) {
     commit('DATA_LOADING_SET', isLoading)
   },

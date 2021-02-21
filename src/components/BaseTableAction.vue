@@ -48,9 +48,11 @@ export default {
     }
   },
   methods: {
-    refresh() {
+    async refresh() {
       this.$store.dispatch(`${this.namespace}/resetFilters`)
-      this.$store.dispatch(`${this.namespace}/fetchItems`, true)
+      // this.$store.commit(`${this.namespace}/RESET`)
+      await this.$store.dispatch(`${this.namespace}/filterApply`)
+      await this.$store.dispatch(`${this.namespace}/fetchItems`, true)
     }
   }
 }

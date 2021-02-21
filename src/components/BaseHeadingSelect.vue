@@ -8,7 +8,7 @@
       />
     </div>
     <!-- Dropdown action button -->
-    <b-dropdown id="topAction" no-caret class="dd-button" variant="link">
+    <!-- <b-dropdown id="topAction" no-caret class="dd-button" variant="link">
       <template #button-content>
         <b-icon icon="caret-down" class="top-dd" variant="secondary" />
       </template>
@@ -24,7 +24,7 @@
       >
         Unselect All
       </b-dd-item-btn>
-    </b-dropdown>
+    </b-dropdown> -->
   </div>
 </template>
 
@@ -80,14 +80,11 @@ export default {
 
 <style lang="css" scoped>
 .action-container {
-  display: flex;
-  justify-content: start;
   margin-bottom: -7px;
 }
 .action-checkbox {
   height: 34px;
   padding-top: 8px;
-  padding-right: 15px;
   cursor: pointer;
   transition: 0.2s;
 }
@@ -109,7 +106,6 @@ d-button,
   color: rgb(156, 156, 156);
 }
 .action-check {
-  width: 34px;
   margin-left: 5px;
 }
 ::v-deep > button {
@@ -120,7 +116,6 @@ d-button,
   padding-bottom: 0px;
   margin-bottom: 5px;
   margin-right: 20px;
-  /* margin-left: -10px; */
 }
 b-button:checked {
   background-color: red;

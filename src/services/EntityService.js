@@ -54,7 +54,7 @@ export default {
     const url =
       searchText !== '' || filter !== '' ? `/${entity}/find` : `/${entity}`
 
-    return apiClient.get(`${url}${query}`)
+    return apiClient.get(encodeURI(`${url}${query}`))
   },
   // Get single record
   getItem(id, entity) {

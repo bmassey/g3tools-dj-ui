@@ -45,17 +45,6 @@ export default {
     }
   },
   async created() {
-    // Set store state
-    // this.$store.dispatch('Brand/entitySet', this.entity)
-    // this.$store.dispatch('Brand/labelFieldSet', this.labelField)
-    // this.$store.dispatch('Brand/titleSet', this.title)
-    // this.$store.dispatch('Brand/subTitleSet', this.subTitle)
-    // Set entity store values specific to Brands
-    this.$store.dispatch(
-      'Brand/activeFilterButtonsSet',
-      this.activeFilterButtons
-    )
-
     await this.fetchData()
     this.timer = setInterval(
       await this.autoRefresh,

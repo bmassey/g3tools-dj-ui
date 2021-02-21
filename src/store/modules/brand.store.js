@@ -29,8 +29,6 @@ const inititalState = () => ({
       dbName: 'brandName',
       headingName: 'Brand Name',
       sortable: true,
-      headingWidthPct: 24.5,
-      dataWidthPct: 25,
       columnType: 'link',
       filterable: true,
       filterType: 'text'
@@ -39,8 +37,6 @@ const inititalState = () => ({
       dbName: 'abbreviation',
       headingName: 'Abbrev',
       sortable: true,
-      headingWidthPct: 10,
-      dataWidthPct: 10,
       columnType: 'text',
       filterable: true,
       filterType: 'text'
@@ -49,8 +45,6 @@ const inititalState = () => ({
       dbName: 'vendorName',
       headingName: 'Vendor Name',
       sortable: true,
-      headingWidthPct: 24.5,
-      dataWidthPct: 25,
       columnType: 'text',
       filterable: true,
       filterType: 'text'
@@ -59,8 +53,6 @@ const inititalState = () => ({
       dbName: 'active',
       headingName: 'Active',
       sortable: true,
-      headingWidthPct: 10,
-      dataWidthPct: 10,
       columnType: 'checkbox',
       filterable: false,
       filterType: 'checkbox'
@@ -69,8 +61,6 @@ const inititalState = () => ({
       dbName: 'modifiedOn',
       headingName: 'Last Modified',
       sortable: true,
-      headingWidthPct: -1, // Omit heading width style
-      dataWidthPct: 20,
       columnType: 'datetime',
       filterable: true,
       filterType: 'text'
@@ -115,9 +105,6 @@ const getters = {
 
 // Actions
 const actions = {
-  activeFilterButtonsSet({ commit }, payload) {
-    commit('ACTIVE_FILTER_BUTTONS_SET', payload)
-  },
   dataLoadingSet({ commit }, isLoading) {
     commit('DATA_LOADING_SET', isLoading)
   },

@@ -6,7 +6,7 @@
         <div class="d-flex">
           <BaseSearchBar :namespace="namespace" />
           <!-- Active basic filter -->
-          <BaseButtonGroup :namespace="namespace" />
+          <BaseActionFilters :namespace="namespace" />
         </div>
         <!-- Action menu to the right -->
         <BaseTableAction
@@ -22,26 +22,24 @@
       >
         {{ emptyText }}
       </div>
-      <table
-        class="table table-hover table-sm table-sortable table-bordered table-striped fixed-header"
-        style="width: 100%"
-      >
-        <thead class="thead-light text-center">
-          <tr>
-            <th colspan="2" scope="col" style="width: 10%">
+      <div class="outer">
+        <table
+          class="table table-hover table-sm table-sortable table-bordered table-striped fixed-header"
+        >
+          <!-- <thead class="thead-light text-center"> -->
+          <tr class="thead-light">
+            <!-- Select all checkbox -->
+            <th class="head-select">
               <BaseHeadingSelect :namespace="namespace" :columns="columns" />
             </th>
+            <!-- Sequence heading -->
+            <th>#</th>
             <!-- Column headings array from props -->
             <template v-for="column in columns">
               <th
                 :key="column.dbName"
                 scope="col"
                 class="unselectable"
-                :style="
-                  column.headingWidthPct !== -1
-                    ? { width: `${column.headingWidthPct}%` }
-                    : ''
-                "
                 @click="sort(`${column.dbName}`)"
               >
                 {{ column.headingName }}
@@ -52,79 +50,70 @@
               </th>
             </template>
           </tr>
-          <BaseTableFilterRow :namespace="namespace" :columns="columns" />
-        </thead>
-        <tbody
-          class="my-tbody"
-          :class="[
-            state.showFilterRow
-              ? 'table-height-filter'
-              : 'table-height-no-filter'
-          ]"
-        >
-          <!-- Table data rows -->
-          <tr v-for="(item, index) in state.items" :key="item.id">
-            <!-- Row select -->
-            <td
-              class="p-0 flex-fill"
-              style="width: 4%"
-              @click.left.exact="rowSelected(item.id)"
-              @click.shift.left.exact="rowSelectedShift(item.id)"
-            >
-              <i
-                class="fa fa-check row-select"
-                :class="[
-                  isRowChecked(item.id) ? 'row-checked' : 'row-unchecked'
-                ]"
-              />
-            </td>
-            <!-- record sequence # -->
-            <td
-              class="text-right g3-sequence unselectable"
-              sytle="white-space: nowrap; width: 6%"
-            >
-              {{ createSequenceNum(index) }}
-              <!-- {{ index }} -->
-            </td>
-            <!-- Data defined in columns array. -->
-            <template v-for="field in columns">
+          <BaseColumnFilters :namespace="namespace" />
+          <!-- </thead> -->
+          <tbody
+            class="my-tbody"
+            :class="[
+              state.showFilterRow
+                ? 'table-height-filter'
+                : 'table-height-no-filter'
+            ]"
+          >
+            <!-- Table data rows -->
+            <tr v-for="(item, index) in state.items" :key="item.id">
+              <!-- Row select -->
               <td
-                :key="field.dbName"
-                class="unselectable"
-                :style="
-                  field.dataWidthPct !== -1
-                    ? {
-                        whiteSpace: 'noWrap',
-                        width: `${field.dataWidthPct}%`
-                      }
-                    : { whiteSpace: 'noWrap' }
-                "
-                @click="
-                  field.columnType === 'link' ? showItemDetail(item) : null
-                "
+                class="p-0 row-select-data"
+                @click.left.exact="rowSelected(item.id)"
+                @click.shift.left.exact="rowSelectedShift(item.id)"
               >
-                <a
-                  v-if="field.columnType === 'link'"
-                  class="col-link"
-                  href="#"
-                  >{{ item[field.dbName] }}</a
-                >
                 <i
-                  v-if="field.columnType === 'checkbox'"
-                  class="col-cb"
-                  :class="{ 'fa fa-check': item[field.dbName] }"
+                  class="fa fa-check row-select"
+                  :class="[
+                    isRowChecked(item.id) ? 'row-checked' : 'row-unchecked'
+                  ]"
                 />
-                <template v-if="field.columnType === 'datetime'">{{
-                  formatDate(item[field.dbName])
-                }}</template>
-                <template v-if="field.columnType === 'text'">{{
-                  item[field.dbName]
-                }}</template>
               </td>
-            </template>
-          </tr>
-        </tbody>
-      </table>
+              <!-- record sequence # -->
+              <td
+                class="text-right g3-sequence unselectable"
+                sytle="white-space: nowrap;"
+              >
+                {{ createSequenceNum(index) }}
+              </td>
+              <!-- Data defined in columns array. -->
+              <template v-for="field in columns">
+                <td
+                  :key="field.dbName"
+                  class="unselectable"
+                  @click="
+                    field.columnType === 'link' ? showItemDetail(item) : null
+                  "
+                >
+                  <a
+                    v-if="field.columnType === 'link'"
+                    class="col-link"
+                    href="#"
+                    >{{ item[field.dbName] }}</a
+                  >
+                  <i
+                    v-if="field.columnType === 'checkbox'"
+                    class="col-cb"
+                    :class="{ 'fa fa-check': item[field.dbName] }"
+                  />
+                  <template v-if="field.columnType === 'datetime'">{{
+                    formatDate(item[field.dbName])
+                  }}</template>
+                  <template v-if="field.columnType === 'text'">{{
+                    item[field.dbName]
+                  }}</template>
+                </td>
+              </template>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div class="d-flex justify-content-between">
         <div class="">
           <BaseTotalRows
@@ -267,6 +256,24 @@ export default {
 </script>
 
 <style lang="css" scoped>
+.outer {
+  overflow-y: auto;
+  margin-bottom: 10px;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  height: 83vh;
+}
+.outer table {
+  width: 100%;
+  border-bottom-width: 1px;
+}
+.outer table th {
+  text-align: center;
+  top: -1px;
+  border-top: 1px;
+  position: sticky;
+  white-space: nowrap;
+}
 .table-action-bar {
   display: flex;
   justify-content: space-between;
@@ -287,25 +294,12 @@ export default {
   background-color: rgba(216, 221, 230, 0.438);
 }
 .table-bordered {
-  /* border-left: 0px; */
   border-top: 0px;
 }
-.fixed-header > .container {
-  padding-left: 0px;
-  padding-right: 0px;
-}
 .fixed-header {
-  width: 100%;
-  table-layout: fixed;
   border-collapse: collapse;
 }
 
-.fixed-header tbody {
-  display: block;
-  width: 100%;
-  overflow: auto;
-  /* height: 78vh; */
-}
 .table-height-no-filter {
   height: 79vh;
 }
@@ -313,14 +307,8 @@ export default {
   height: 75.3vh;
 }
 
-.fixed-header thead tr {
-  display: block;
-}
-
 .fixed-header th,
 .fixed-header td {
-  padding: 5px;
-  width: 900px;
   border-width: 1px;
 }
 
@@ -341,6 +329,10 @@ export default {
   padding-top: 8px;
   cursor: pointer;
   transition: 0.2s;
+}
+.row-select-data {
+  min-width: 32px;
+  max-width: 32px;
 }
 .row-select:hover {
   transform: scale(1.2, 1.2);
